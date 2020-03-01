@@ -598,6 +598,15 @@ Lcarte creerListeCarte(SDL_Renderer * ren,TTF_Font * dejavu) {
         listeCarte=ajoutTete(listeCarte,tmp);
     }
 
+    //Lipton
+    tmp=creerLipton(ren,dejavu);
+    if (tmp==NULL) {
+        printf("\nImpossible d'ajouter Lipton\n");
+    }
+    else {
+        listeCarte=ajoutTete(listeCarte,tmp);
+    }
+
     //Jack
     tmp=creerJack(ren,dejavu);
     if (tmp==NULL) {
@@ -719,15 +728,12 @@ int effetDirectRexyz(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provo
     return 1;
 }
 
-/*
-//Je vais te faire les fesses
-int effetDirectFesses(Carte * c,SDL_Renderer * ren,void * provoc,void * bj,void * be,int *a,int * b, int * d) {
+int effetDirectFesses(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d,void * jj) {
     c->pv-=2;
     return 1;
 }
 
-//Sel
-int effetDirectSel(Carte * c,SDL_Renderer * ren,void * provoc,void * bj,void * be,int *a,int * b, int * d) {
+int effetDirectSel(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d,void * jj) {
     Lcarte * boardEnnemi= be;
     Lcarte tmpboard= *boardEnnemi;
     while (tmpboard!=NULL) {
@@ -737,46 +743,41 @@ int effetDirectSel(Carte * c,SDL_Renderer * ren,void * provoc,void * bj,void * b
     return 1;
 }
 
-//La japan Touch
-int effetTerrainJapan(Carte * c,SDL_Renderer * ren,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain) {
+int effetTerrainJapan(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
     *effetCoutTerrain=-1;
     *effetAttTerrain=0;
     *effetPVTerrain=0;
     return 1;
 }
 
-//Le memphis coffee l'ambiance des vrais dinners américains
-int effetTerrainMemphis(Carte * c,SDL_Renderer * ren,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain) {
+int effetTerrainMemphis(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
     *effetCoutTerrain=0;
     *effetAttTerrain=0;
     *effetPVTerrain=1;
     return 1;
 }
 
-//L'appart de TheReed
-int effetTerrainAppartTR(Carte * c,SDL_Renderer * ren,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain) {
+int effetTerrainAppartTR(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
     *effetCoutTerrain=0;
     *effetAttTerrain=1;
     *effetPVTerrain=0;
     return 1;
 }
 
-//L'appart de JeanJack
-int effetTerrainAppartJJ(Carte * c,SDL_Renderer * ren,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain) {
+int effetTerrainAppartJJ(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
     *effetCoutTerrain=1;
     *effetAttTerrain=0;
     *effetPVTerrain=0;
     return 1;
 }
 
-//Les petites bites
-int effetTerrainLesPetitesBites(Carte * c,SDL_Renderer * ren,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain) {
+int effetTerrainLesPetitesBites(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
     *effetCoutTerrain=0;
     *effetPVTerrain=0;
     *effetAttTerrain=-1;
     return 1;
 }
-*/
+
 int raleDagonieNeutre(Carte * c,SDL_Renderer * ren,void * provoc, void * boardJoueur,void * boardEnnemi) {
     return 1;
 }
@@ -899,12 +900,70 @@ Carte * creerRexyz(SDL_Renderer * ren,TTF_Font * dejavu) {
   return tmp;
 }
 
+Carte * creerLipton(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,19,"Lipton","image/cartes/Lipton.png",1,0,1,3,2,SDL_TRUE);
+  tmp->raleDagonie=&raleDagonieNeutre;
+  tmp->effetDirect=&effetDirectNeutre;
+  return tmp;
+}
+
 Carte * creerJack(SDL_Renderer * ren,TTF_Font * dejavu) {
   Carte * tmp = creerCarte(ren,dejavu,20,"Jack","image/cartes/jack.png",1,0,3,1,2,SDL_FALSE);
   tmp->raleDagonie=&raleDagonieNeutre;
   tmp->effetDirect=&effetDirectProvocation;
   return tmp;
 }
+
+Carte * creerSel(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,203,"Le Sel","image/cartes/sel.png",2,5,0,0,4,SDL_FALSE);
+  tmp->effetDirect=&effetDirectSel;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerFesses(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,223,"J'vais te faire les fesses","image/cartes/fesses.png",2,0,0,0,2,SDL_TRUE);
+  tmp->effetDirect=&effetDirectFesses;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerJapan(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,103,"Japan Touch","image/cartes/japan.png",3,0,0,0,3,SDL_TRUE);
+  tmp->effetDirect=&effetTerrainJapan;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerMemphis(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,102,"Memphis Coffee","image/cartes/memphis.png",3,0,0,0,3,SDL_TRUE);
+  tmp->effetDirect=&effetTerrainMemphis;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerAppartJJ(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,104,"L'appart de JeanJack","image/cartes/appartJJ.png",3,0,0,0,3,SDL_TRUE);
+  tmp->effetDirect=&effetTerrainAppartJJ;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerAppartTR(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,105,"L'appart de TheReed","image/cartes/appartTR.png",3,0,0,0,3,SDL_TRUE);
+  tmp->effetDirect=&effetTerrainAppartTR;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+Carte * creerLesPetitesBites(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,101,"Les Peuttites Bites","image/cartes/lespetitesbites.png",3,0,0,0,3,SDL_TRUE);
+  tmp->effetDirect=&effetTerrainLesPetitesBites;
+  tmp->raleDagonie=&raleDagonieNeutre;
+  return tmp;
+}
+
+
 
 Carte * creerCarte(SDL_Renderer * ren,TTF_Font * dejavu,int id,char * nom,char * path,int genre,int type,int pv,int att,int cout,SDL_bool peutAttaquer) {
     Carte * c;
@@ -929,8 +988,19 @@ Carte * creerCarte(SDL_Renderer * ren,TTF_Font * dejavu,int id,char * nom,char *
     c->attMax=c->att=att;
     c->coutMax=c->cout=cout;
     c->peutAttaquer=peutAttaquer;
-    creerTextureCarte(ren,c,dejavu,0,0,0);
-
+    switch (genre) {
+      case 1:
+        creerTextureCarte(ren,c,dejavu,0,0,0);
+        break;
+      case 2:
+        creerTextureSort(ren,c,dejavu,0);
+        break;
+      case 3:
+        creerTextureSort(ren,c,dejavu,0);
+        break;
+      default:
+        break;
+    }
     return c;
 }
 
@@ -997,6 +1067,9 @@ Carte * idtocard(int i,SDL_Renderer * ren, TTF_Font * dejavu) {
           return tmp;
         case 15:
           tmp=creerRexyz(ren,dejavu);
+          return tmp;
+        case 19:
+          tmp=creerLipton(ren,dejavu);
           return tmp;
         case 20:
           tmp=creerJack(ren,dejavu);

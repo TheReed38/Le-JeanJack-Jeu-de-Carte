@@ -46,7 +46,6 @@ SDL_Rect * copieRect(SDL_Rect * r);
 
 Carte * creerJJ(SDL_Renderer * ren, TTF_Font * dejavu);
 Carte * creerBadLemon(SDL_Renderer * ren, TTF_Font * dejavu);
-Carte * creerJack(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerErwann(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerErwannn(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerErwannnn(SDL_Renderer * ren,TTF_Font * dejavu);
@@ -59,6 +58,8 @@ Carte * creerWinston(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerSuppo(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerTheReed(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerRexyz(SDL_Renderer * ren,TTF_Font * dejavu);
+Carte * creerLipton(SDL_Renderer * ren,TTF_Font * dejavu);
+Carte * creerJack(SDL_Renderer * ren,TTF_Font * dejavu);
 
 Carte * creerLesPetitesBites(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerSel(SDL_Renderer * ren,TTF_Font * dejavu);

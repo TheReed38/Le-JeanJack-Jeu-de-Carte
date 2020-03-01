@@ -741,7 +741,7 @@ int deck(SDL_Window * fen, SDL_Renderer * ren,TTF_Font * dejavu,Mix_Chunk * hove
               afficheDeck(ren,newDeck,winW,winH,dejavu,refresh);
               SDL_RenderCopy(ren,bout2,NULL,&RBout2);
               SDL_RenderCopy(ren,TtextBout2,NULL,&RtextBout2);
-              if (page<6) {
+              if (page<20) {
                 SDL_RenderCopy(ren,boutonSuivant,NULL,&RboutonSuivant);
               }
               if (page>0) {
@@ -889,7 +889,7 @@ int deck(SDL_Window * fen, SDL_Renderer * ren,TTF_Font * dejavu,Mix_Chunk * hove
               if (page<=0) {
                 RBout1.w=RBout1.h=RtextBout1.w=RtextBout1.h=RboutonPrecedent.w=RboutonPrecedent.h=0;
               }
-              if (page>=6) {
+              if (page>=20) {
                 RBout1.w=RBout1.h=RtextBout1.w=RtextBout1.h=RboutonSuivant.w=RboutonSuivant.h=0;
               }
               RBout3.w=RBout3.h=RtextBout3.w=RtextBout3.h=RboutDeck3.w=RboutDeck3.h=RtextBoutDeck3.w=RtextBoutDeck3.h=RboutDeck2.w=RboutDeck2.h=RtextBoutDeck2.w=RtextBoutDeck2.h=RboutDeck1.w=RboutDeck1.h=RtextBoutDeck1.w=RtextBoutDeck1.h=0;
