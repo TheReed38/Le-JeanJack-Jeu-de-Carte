@@ -721,8 +721,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
             //Fond zone de Jeu
             SDL_RenderCopy(ren,zoneJeu,NULL,&RzoneJeu);
             if (refresh) {
-                boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
             }
             if (pvEnnemi<=0 && victory==0) {
                 tour = 0;
@@ -871,8 +871,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           }
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
                       if (bufftmp[0]=='4') {
                           sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
@@ -886,8 +886,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           carteAttaquante->pv-=cartetmp->att+effetAttTerrainEnnemi;
                           carteAttaquante=NULL;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
 
                       }
                       if (bufftmp[0]=='5') {
@@ -914,8 +914,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           }
                           refresh=SDL_TRUE;
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
-                          boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
                       if (bufftmp[0]=='7') {
                           sscanf(bufftmp,"%d %d",&instruction,&idtmp);
@@ -925,8 +925,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           }
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
 
                       if (bufftmp[0]=='8') {
@@ -941,8 +941,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           }
                           manaEnnemi-=sorttmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                           sorttmp=NULL;
                       }
 

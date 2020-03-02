@@ -20,7 +20,7 @@ typedef struct _carte {
     int cout;
     SDL_bool peutAttaquer; //peutAttaquer sert aussi pour les sorts (il dit si le sort requiert de désigner quelqu'un)
     int (*effetDirect) (struct _carte *,SDL_Renderer*,TTF_Font*,void *,void *,void*,int*,int*,int*,void*);
-    int (*raleDagonie) (struct _carte *,SDL_Renderer*,void *,void *,void *);
+    int (*raleDagonie) (struct _carte *,SDL_Renderer*,TTF_Font*,void *,void *,void *);
 } Carte;
 
 typedef struct maillon {
@@ -57,6 +57,7 @@ Carte * creerLucio(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerWinston(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerSuppo(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerTheReed(SDL_Renderer * ren,TTF_Font * dejavu);
+Carte * creerJeanLassalle(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerRexyz(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerLipton(SDL_Renderer * ren,TTF_Font * dejavu);
 Carte * creerJack(SDL_Renderer * ren,TTF_Font * dejavu);
@@ -73,11 +74,12 @@ Carte * piocheRandom(SDL_Renderer * ren, TTF_Font * dejavu, int type);
 Carte * creerCarte(SDL_Renderer * ren,TTF_Font * dejavu,int id,char * nom,char * path,int genre,int type,int pv,int att,int cout,SDL_bool peutAttaquer);
 
 SDL_bool estInvocable(Carte * c, Lcarte board);
+SDL_bool isFull(Lcarte board);
 
 Lcarte refreshAttaque(Lcarte l);
 void refreshCarte(SDL_Renderer * ren,Carte * c,TTF_Font * dejavu,SDL_Rect * Raff, int modifPv,int modifAtt,int modifCout);
-Lcarte refreshBoardJoueur(SDL_Renderer * ren,Lcarte boardJoueur,Lcarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain);
-Lcarte refreshBoardEnnemi(SDL_Renderer* ren,Lcarte boardEnnemi,Lcarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int *effetAttTerrainEnnemi,int *effetCoutTerrain);
+Lcarte refreshBoardJoueur(SDL_Renderer * ren,TTF_Font * dejavu,Lcarte boardJoueur,Lcarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain);
+Lcarte refreshBoardEnnemi(SDL_Renderer* ren,TTF_Font * dejavu,Lcarte boardEnnemi,Lcarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int *effetAttTerrainEnnemi,int *effetCoutTerrain);
 Carte * carteClique(SDL_Point * mousePos,Lcarte jeuJoueur,Lcarte boardEnnemi,Lcarte boardJoueur);
 int creerTextureCarte(SDL_Renderer * ren, Carte * c,TTF_Font * dejavu,int modifPv , int modifAtt, int modifCout);
 int creerTextureSort(SDL_Renderer * ren, Carte * c,TTF_Font * dejavu, int modifCout);

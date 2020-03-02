@@ -385,7 +385,7 @@ void refreshCarte(SDL_Renderer * ren,Carte * c,TTF_Font * dejavu,SDL_Rect * Raff
     SDL_RenderCopy(ren,c->TcarteComplet,NULL,Raff);
 }
 
-Lcarte refreshBoardJoueur(SDL_Renderer* ren,Lcarte boardJoueur,Lcarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain) {
+Lcarte refreshBoardJoueur(SDL_Renderer* ren,TTF_Font * dejavu,Lcarte boardJoueur,Lcarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain) {
     //Fonction chargé de refresh les creatures mortes et les effets de terrain
     Lcarte board=boardJoueur;
     Lcarte tmp;
@@ -397,7 +397,7 @@ Lcarte refreshBoardJoueur(SDL_Renderer* ren,Lcarte boardJoueur,Lcarte * provocat
     while (board!=NULL) {
         if (board->carte->pv+(*effetPVTerrainJoueur)<=0) {
             tmp=board->suiv;
-            if (board->carte->raleDagonie(board->carte,ren,provocationJoueur,&boardJoueur,NULL) != 1) {
+            if (board->carte->raleDagonie(board->carte,ren,dejavu,provocationJoueur,&boardJoueur,NULL) != 1) {
                 printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",board->carte->nom);
             }
             if (isIn(board->carte,*provocationJoueur)) {
@@ -413,7 +413,7 @@ Lcarte refreshBoardJoueur(SDL_Renderer* ren,Lcarte boardJoueur,Lcarte * provocat
     return boardJoueur;
 }
 
-Lcarte refreshBoardEnnemi(SDL_Renderer* ren,Lcarte boardEnnemi,Lcarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int* effetAttTerrainEnnemi,int *effetCoutTerrain) {
+Lcarte refreshBoardEnnemi(SDL_Renderer* ren,TTF_Font * dejavu,Lcarte boardEnnemi,Lcarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int* effetAttTerrainEnnemi,int *effetCoutTerrain) {
     Lcarte board=boardEnnemi;
     Lcarte tmp;
     if (terrainEnnemi!=NULL) {
@@ -424,7 +424,7 @@ Lcarte refreshBoardEnnemi(SDL_Renderer* ren,Lcarte boardEnnemi,Lcarte * provocat
     while (board!=NULL) {
         if (board->carte->pv+(*effetPVTerrainEnnemi)<=0) {
             tmp=board->suiv;
-            if (board->carte->raleDagonie(board->carte,ren,provocationEnnemi,&boardEnnemi,NULL) != 1) {
+            if (board->carte->raleDagonie(board->carte,ren,dejavu,provocationEnnemi,&boardEnnemi,NULL) != 1) {
                 printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",board->carte->nom);
             }
             if (isIn(board->carte,*provocationEnnemi)) {
@@ -584,6 +584,15 @@ Lcarte creerListeCarte(SDL_Renderer * ren,TTF_Font * dejavu) {
     tmp=creerTheReed(ren,dejavu);
     if (tmp==NULL) {
         printf("\nImpossible d'ajouter TheReed\n");
+    }
+    else {
+        listeCarte=ajoutTete(listeCarte,tmp);
+    }
+
+    //JeanLassalle
+    tmp=creerJeanLassalle(ren,dejavu);
+    if (tmp==NULL) {
+        printf("\nImpossible d'ajouter Jean Lassalle\n");
     }
     else {
         listeCarte=ajoutTete(listeCarte,tmp);
@@ -778,11 +787,11 @@ int effetTerrainLesPetitesBites(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,v
     return 1;
 }
 
-int raleDagonieNeutre(Carte * c,SDL_Renderer * ren,void * provoc, void * boardJoueur,void * boardEnnemi) {
+int raleDagonieNeutre(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
     return 1;
 }
 
-int raleDagonieWinston(Carte * c,SDL_Renderer * ren,void * provoc, void * boardJoueur,void * boardEnnemi) {
+int raleDagonieWinston(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
     Lcarte * bj = boardJoueur;
     Lcarte tmpbj = *bj;
     while (tmpbj!=NULL) {
@@ -792,12 +801,26 @@ int raleDagonieWinston(Carte * c,SDL_Renderer * ren,void * provoc, void * boardJ
     return 1;
 }
 
-int raleDagonieLucio(Carte * c,SDL_Renderer * ren,void * provoc, void * boardJoueur,void * boardEnnemi) {
+int raleDagonieLucio(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
     Lcarte * bj = boardJoueur;
     Lcarte tmpbj = *bj;
     while (tmpbj!=NULL) {
       tmpbj->carte->att+=1;
       tmpbj=tmpbj->suiv;
+    }
+    return 1;
+}
+
+int raleDagonieJeanLassalle(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
+    Lcarte * bj = boardJoueur;
+    Carte * newJean = idtocard(14,ren,dejavu);
+    if (estInvocable(newJean,*bj)) {
+      *bj = ajoutTete(*bj,newJean);
+      newJean = idtocard(14,ren,dejavu);
+      *bj = ajoutTete(*bj,newJean);
+    }
+    else {
+      *bj = ajoutTete(*bj,newJean);
     }
     return 1;
 }
@@ -890,6 +913,13 @@ Carte * creerTheReed(SDL_Renderer * ren,TTF_Font * dejavu) {
   Carte * tmp = creerCarte(ren,dejavu,13,"TheReed","image/cartes/TheReed.png",1,5,5,4,4,SDL_FALSE);
   tmp->raleDagonie=&raleDagonieNeutre;
   tmp->effetDirect=&effetDirectTheReed;
+  return tmp;
+}
+
+Carte * creerJeanLassalle(SDL_Renderer * ren,TTF_Font * dejavu) {
+  Carte * tmp = creerCarte(ren,dejavu,14,"Jean Lassalle","image/cartes/jeanLassalle.png",1,0,1,1,8,SDL_FALSE);
+  tmp->raleDagonie=&raleDagonieJeanLassalle;
+  tmp->effetDirect=&effetDirectNeutre;
   return tmp;
 }
 
@@ -1005,6 +1035,9 @@ Carte * creerCarte(SDL_Renderer * ren,TTF_Font * dejavu,int id,char * nom,char *
 }
 
 SDL_bool estInvocable(Carte * c, Lcarte board) {
+  if (isFull(board)) {
+    return SDL_FALSE;
+  }
   if (c->id == 1) {
     if (idIsIn(2,board)) {
       if (idIsIn(6,board)) {
@@ -1022,6 +1055,12 @@ SDL_bool estInvocable(Carte * c, Lcarte board) {
   return SDL_TRUE;
 }
 
+SDL_bool isFull(Lcarte board) {
+    if (len(board)>=8) {
+      return SDL_TRUE;
+    }
+    return SDL_FALSE;
+}
 
 Carte * idtocard(int i,SDL_Renderer * ren, TTF_Font * dejavu) {
     Carte * tmp;
@@ -1064,6 +1103,9 @@ Carte * idtocard(int i,SDL_Renderer * ren, TTF_Font * dejavu) {
           return tmp;
         case 13:
           tmp=creerTheReed(ren,dejavu);
+          return tmp;
+        case 14:
+          tmp=creerJeanLassalle(ren,dejavu);
           return tmp;
         case 15:
           tmp=creerRexyz(ren,dejavu);
