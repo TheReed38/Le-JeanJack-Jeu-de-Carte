@@ -1,24 +1,22 @@
 CPP=gcc    #Commande du compilateur
-CFLAGS=`sdl2-config --cflags --libs` -Wall -Wextra#Option d'optimisation du programme
-LDFLAGS=`sdl2-config --cflags --libs` -L/usr/lib/x86_64-linux-gnu -lSDL2_image -lSDL2_mixer -lSDL2_ttf#Linker
-LD_DEBUG=all make
+CFLAGS=-Llib -Iinclude -Wall -Wextra#Option d'optimisation du programme
+LDFLAGS=-lwsock32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf#Linker
 
-all: main serv
+src := $(shell find . -wholename "./src/*.c" | grep -v "./src/serveur.c")
+obj = $(src:.c=.o)
 
-main: main.o deck.o fonctions.o lobby.o carte.o jeu.o options.o
-	${CPP} $(CFLAGS) -o main main.o fonctions.o deck.o lobby.o carte.o jeu.o options.o ${LDFLAGS}
 
-serv: serveur.o
-	${CPP} $(CFLAGS) -o serv serveur.o ${LDFLAGS}
+all: bin/LeJeanJackJeuDeCarte.exe bin/serveurJJJDC.exe
+
+bin/LeJeanJackJeuDeCarte.exe: $(obj)
+	${CPP} $(CFLAGS) -o $@ $^ ${LDFLAGS}
+
+bin/serveurJJJDC.exe: src/serveur.o
+	${CPP} $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
 %.o: %.c
-	$(CPP) -c $< $(CFLAGS)
+	$(CPP) -c -o $@ $< $(CFLAGS) 
 
-
-
-clean:
-	rm *.o
-
-mrproper: clean
-	rm main
-	rm serv
+.PHONY: clean
+clean :
+	rm -f $(obj) bin/LeJeanJackJeuDeCarte.exe bin/serveurJJJDC.exe src/serveur.o
