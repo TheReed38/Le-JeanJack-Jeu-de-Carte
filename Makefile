@@ -1,7 +1,11 @@
 CPP=gcc    #Commande du compilateur
-CFLAGS=-Llib -Iinclude -Wall -Wextra#Option d'optimisation du programme
-LDFLAGS=-lwsock32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf#Linker
-
+ifeq ($(OS),Windows_NT)
+	LDFLAGS=-lwsock32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+	CFLAGS=-Llib -Iinclude -Wall -Wextra
+else
+	LDFLAGS=-lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+	CFLAGS=-L/usr/lib/x86_64-linux-gnu -Iinclude -Wall -Wextra
+endif
 src := $(shell find . -wholename "./src/*.c" | grep -v "./src/serveur.c")
 obj = $(src:.c=.o)
 
