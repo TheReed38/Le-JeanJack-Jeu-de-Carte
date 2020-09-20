@@ -1,11 +1,8 @@
 CPP=gcc    #Commande du compilateur
-ifeq ($(OS),Windows_NT)
-	LDFLAGS=-lwsock32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-	CFLAGS=-Llib -Iinclude -Wall -Wextra
-else
-	LDFLAGS=-lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-	CFLAGS=-L/usr/lib/x86_64-linux-gnu -Iinclude -Wall -Wextra
-endif
+
+LDFLAGS=-lws2_32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+CFLAGS=-Llib -Iinclude -Wall -Wextra
+
 src := $(shell find . -wholename "./src/*.c" | grep -v "./src/serveur.c")
 obj = $(src:.c=.o)
 

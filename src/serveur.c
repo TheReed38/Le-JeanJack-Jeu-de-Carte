@@ -17,42 +17,15 @@ Code de communication serveur client
 #include <string.h>
 
 //Si nous sommes sous Windows
-#if defined (WIN32)
-
     #include <winsock2.h>
-
     // typedef, qui nous serviront par la suite
     typedef int socklen_t;
-
-// Sinon, si nous sommes sous Linux
-#elif defined (linux)
-
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <unistd.h>
-
-    // Define, qui nous serviront par la suite
-    #define INVALID_SOCKET -1
-    #define SOCKET_ERROR -1
-    #define closesocket(s) close (s)
-
-    // De même
-    typedef int SOCKET;
-    typedef struct sockaddr_in SOCKADDR_IN;
-    typedef struct sockaddr SOCKADDR;
-
-#endif
 
 // On inclut les fichiers standards
 int main(int argc, char *argv[])
 {
-    // Si la plateforme est Windows
-    #if defined (WIN32)
-        WSADATA WSAData;
-        WSAStartup(MAKEWORD(2,2), &WSAData);
-    #endif
+    WSADATA WSAData;
+    WSAStartup(MAKEWORD(2,2), &WSAData);
 
     //Pour le select
     fd_set readfs;
@@ -61,14 +34,16 @@ int main(int argc, char *argv[])
     int n;
 
     SOCKET socketServeur;
-    SOCKADDR_IN adressSocketS;
+    SOCKADDR_IN adressSocketS = {0};
     socketServeur=socket(AF_INET,SOCK_STREAM,0);
+
     if (socketServeur==INVALID_SOCKET) {
       printf("Echec creation socket Serveur\n");
       exit(EXIT_FAILURE);
     }
+
     adressSocketS.sin_family=AF_INET;
-    adressSocketS.sin_port=htons(23);
+    adressSocketS.sin_port=htons(25565);
     adressSocketS.sin_addr.s_addr=htonl(INADDR_ANY);//inet_addr("2");
 
     printf("Socket à l'adresse %s\n",inet_ntoa(adressSocketS.sin_addr));
@@ -177,10 +152,8 @@ int main(int argc, char *argv[])
     closesocket(socketServeur);
     closesocket(socketJ1);
     closesocket(socketJ2);
-    // Si la plateforme est Windows
-    #if defined (WIN32)
-        WSACleanup();
-    #endif
+
+    WSACleanup();
 
     return EXIT_SUCCESS;
 }

@@ -7,1044 +7,1044 @@
 
 #include "SDL2/SDL.h"
 
-int creerTextureCarte(SDL_Renderer * ren, Carte * c,TTF_Font * dejavu,int modifPv , int modifAtt, int modifCout) {
+extern SDL_Renderer *ren;
+extern TTF_Font *dejavu;
+extern SDL_Color *coulTextBout;
+extern SDL_Color *coulFondBout;
+extern SDL_Color *coulFondDeck;
+extern SDL_Color *coulFondEcran;
 
-    int w;
-    int h;
-    char vie[4];
-    char att[4];
-    char mana[4];
-
-    sprintf(vie, "%d", c->pv + modifPv);
-    sprintf(att, "%d", c->att + modifAtt);
-    sprintf(mana, "%d", c->cout + modifCout);
-
-    SDL_Color coulTextBout={0,0,0,255};
-
-    SDL_Rect carte;
-    SDL_QueryTexture(c->Tcarte,NULL,NULL,&w,&h);
-    if (c->TcarteComplet!=NULL) {
-        SDL_DestroyTexture(c->TcarteComplet);
-    }
-    
-    c->TcarteComplet=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,w,h);
-    if (c->TcarteComplet==NULL) {
-      SDL_Log("Unable to create texture:%s",SDL_GetError());
-      return 1;
-    }
-    SDL_SetRenderTarget(ren,c->TcarteComplet);
-
-    carte.x=carte.y=0;
-    carte.w=w;
-    carte.h=h;
-    
-    SDL_SetTextureBlendMode(c->TcarteComplet, SDL_BLENDMODE_BLEND);
-
-    SDL_RenderCopy(ren,c->Tcarte,NULL,&carte);
-
-
-    //ATTAQUE
-    SDL_Texture * TtextBout1 = NULL;
-    SDL_Surface * textBout1 = NULL;
-    textBout1=TTF_RenderText_Solid(dejavu,att,coulTextBout);
-    if (!textBout1) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    TtextBout1=SDL_CreateTextureFromSurface(ren,textBout1);
-    SDL_FreeSurface(textBout1);
-    if (TtextBout1==NULL) {
-      SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RtextBout1;
-    RtextBout1.x=w/10;
-    RtextBout1.w=w/5;
-    RtextBout1.h=h/7;
-    RtextBout1.y=(5*h)/6;
-
-    SDL_RenderCopy(ren,TtextBout1,NULL,&RtextBout1);
-
-    //MANA
-    SDL_Texture * TtextBout2 = NULL;
-    SDL_Surface * textBout2 = NULL;
-    textBout2=TTF_RenderText_Solid(dejavu,mana,coulTextBout);
-    if (!textBout2) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    TtextBout2=SDL_CreateTextureFromSurface(ren,textBout2);
-    SDL_FreeSurface(textBout2);
-    if (TtextBout2==NULL) {
-      SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RtextBout2;
-    RtextBout2.x=(5*w)/12;
-    RtextBout2.y=(5*h)/6;
-    RtextBout2.w=w/5;
-    RtextBout2.h=h/7;
-
-    SDL_RenderCopy(ren,TtextBout2,NULL,&RtextBout2);
-
-    //VIE
-    SDL_Texture * TtextBout3 = NULL;
-    SDL_Surface * textBout3 = NULL;
-    textBout3=TTF_RenderText_Solid(dejavu,vie,coulTextBout);
-    if (!textBout3) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    TtextBout3=SDL_CreateTextureFromSurface(ren,textBout3);
-    SDL_FreeSurface(textBout3);
-    if (TtextBout3==NULL) {
-      SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RtextBout3;
-    RtextBout3.x=(21*w)/30;
-    RtextBout3.y=(5*h)/6;
-    RtextBout3.w=w/5;
-    RtextBout3.h=h/7;
-
-    SDL_RenderCopy(ren,TtextBout3,NULL,&RtextBout3);
-
-    SDL_DestroyTexture(TtextBout1);
-    SDL_DestroyTexture(TtextBout2);
-    SDL_DestroyTexture(TtextBout3);
-
-    SDL_SetRenderTarget(ren,NULL);
-
-    return 0;
+SDL_Texture *creerTextureTexte(char *text, SDL_Color *color, int *w, int *h)
+{
+  SDL_Texture *TtextBout = NULL;
+  SDL_Surface *textBout = NULL;
+  textBout = TTF_RenderUTF8_Blended(dejavu, text, *color);
+  if (!textBout)
+  {
+    printf("TTF_RenderUTF8_Blended: %s\n", TTF_GetError());
+    exit(2);
+  }
+  TtextBout = SDL_CreateTextureFromSurface(ren, textBout);
+  SDL_FreeSurface(textBout);
+  if (TtextBout == NULL)
+  {
+    SDL_Log("Unable to create texture from image :%s", SDL_GetError());
+    return NULL;
+  }
+  SDL_QueryTexture(TtextBout, NULL, NULL, w, h);
+  return TtextBout;
 }
 
-int creerTextureSort(SDL_Renderer * ren, Carte * c,TTF_Font * dejavu, int modifCout) {
+int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout)
+{
+  if (!(c->TCarteComplete))
+  {
+    char cout[16];
+    sprintf(cout, "%d", c->cout + modifCout);
 
-    int w;
-    int h;
+    SDL_Rect RCarte = initRect(0, 0, 0, 0);
+    SDL_QueryTexture(c->TCarte, NULL, NULL, &(RCarte.w), &(RCarte.h));
 
-    char mana[4];
+    c->TCarteComplete = SDL_CreateTextureSimplified(RCarte.w, RCarte.h);
+    SDL_SetRenderTarget(ren, c->TCarteComplete);
 
-    sprintf(mana, "%d", c->cout + modifCout);
+    SDL_SetTextureBlendMode(c->TCarteComplete, SDL_BLENDMODE_BLEND); //TODO tester cette fonction
 
-    SDL_Color coulTextBout={0,0,0,255};
+    SDL_Rect RtextCout = initRect((11 * RCarte.w) / 24, (5 * RCarte.h) / 6, RCarte.w / 5, RCarte.h / 7);
+    SDL_Texture *TtextCout = creerTextureTexte(cout, coulFondEcran, &(RtextCout.w), &(RtextCout.h));
 
-    SDL_Rect carte;
-    SDL_QueryTexture(c->Tcarte,NULL,NULL,&w,&h);
-    if (c->TcarteComplet!=NULL) {
-        SDL_DestroyTexture(c->TcarteComplet);
+    if (c->genre == 1)
+    {
+
+      char pv[16];
+      char att[16];
+      sprintf(pv, "%d", c->pv + modifPv);
+      sprintf(att, "%d", c->att + modifAtt);
+      SDL_Rect RtextPv = initRect((22 * RCarte.w) / 30, (5 * RCarte.h) / 6, RCarte.w / 100, RCarte.h / 7);
+      SDL_Texture *TtextPv = creerTextureTexte(pv, coulFondEcran, &(RtextPv.w), &(RtextPv.h));
+
+      SDL_Rect RtextAttaque = initRect(RCarte.w / 10, (5 * RCarte.h) / 6, RCarte.w / 5, RCarte.h / 7);
+      SDL_Texture *TtextAttaque = creerTextureTexte(att, coulFondEcran, &(RtextAttaque.w), &(RtextAttaque.h));
+      SDL_RenderCopy(ren, c->TCarte, NULL, &RCarte);
+      SDL_RenderCopy(ren, TtextPv, NULL, &RtextPv);
+      SDL_RenderCopy(ren, TtextAttaque, NULL, &RtextAttaque);
+      SDL_RenderCopy(ren, TtextCout, NULL, &RtextCout);
+      SDL_DestroyTexture(TtextCout);
+      SDL_DestroyTexture(TtextPv);
+      SDL_DestroyTexture(TtextAttaque);
     }
-    c->TcarteComplet=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,w,h);
-    if (c->TcarteComplet==NULL) {
-      SDL_Log("Unable to create texture:%s",SDL_GetError());
-      return 1;
+    else {
+      SDL_RenderCopy(ren, c->TCarte, NULL, &RCarte);
+      SDL_RenderCopy(ren, TtextCout, NULL, &RtextCout);
+      SDL_DestroyTexture(TtextCout);
     }
-    SDL_SetRenderTarget(ren,c->TcarteComplet);
 
-    carte.x=carte.y=0;
-    carte.w=w;
-    carte.h=h;
+    SDL_SetRenderTarget(ren, NULL);
+  }
+  return 0;
+}
 
-    SDL_SetTextureBlendMode(c->TcarteComplet, SDL_BLENDMODE_BLEND);
-
-    SDL_RenderCopy(ren,c->Tcarte,NULL,&carte);
-
-    //MANA
-    SDL_Texture * TtextBout2 = NULL;
-    SDL_Surface * textBout2 = NULL;
-    textBout2=TTF_RenderText_Solid(dejavu,mana,coulTextBout);
-    if (!textBout2) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    TtextBout2=SDL_CreateTextureFromSurface(ren,textBout2);
-    SDL_FreeSurface(textBout2);
-    if (TtextBout2==NULL) {
-      SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RtextBout2;
-    RtextBout2.x=(5*w)/12;
-    RtextBout2.y=(5*h)/6;
-    RtextBout2.w=w/5;
-    RtextBout2.h=h/7;
-
-    SDL_RenderCopy(ren,TtextBout2,NULL,&RtextBout2);
-
-    SDL_DestroyTexture(TtextBout2);
-
-    SDL_SetRenderTarget(ren,NULL);
-
-    return 0;
+int refreshTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout)
+{
+  SDL_DestroyTexture(c->TCarteComplete);
+  c->TCarteComplete = NULL;
+  return creerTextureCompleteCarte(c, modifPv, modifAtt, modifCout);
 }
 
 //Texture reduite utilisée pendant la création de nouveaux decks
-int creerTextureReduiteCarte(SDL_Renderer * ren,Carte * c,TTF_Font * dejavu ) {
-
-  if (c==NULL) {
-      printf("creerTextureCarte: ERREUR CARTE NULL\n");
-      return 1;
-  }
-
-  SDL_Color coulTextBout={255,255,255,255};
-
-  if (c->TcarteReduite!=NULL) {
-      SDL_DestroyTexture(c->TcarteReduite);
-  }
-
-  c->TcarteReduite=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,1500,200);
-  if (c->TcarteReduite==NULL) {
-    SDL_Log("Unable to create texture:%s",SDL_GetError());
+int creerTextureReduiteCarte(Carte *c)
+{
+  if (c == NULL)
+  {
+    printf("creerTextureReduiteCarte: ERREUR CARTE NULL\n");
     return 1;
   }
-  SDL_SetRenderTarget(ren,c->TcarteReduite);
-  SDL_Rect carte;
-  carte.x=carte.y=0;
-  carte.w=1500;
-  carte.h=200;
-  if (SDL_SetRenderDrawColor(ren,120,120,120,255)<0) {
-      printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-      return EXIT_FAILURE;
+  if (c->TCarteReduite == NULL)
+  {
+    c->TCarteReduite = createBouton(1500, 200, coulFondBout, coulTextBout, c->nom);
   }
-  SDL_RenderFillRect(ren,&carte);
-
-  SDL_Texture * text;
-  SDL_Surface * Stext;
-  Stext=TTF_RenderText_Solid(dejavu,c->nom,coulTextBout);
-  if (!Stext) {
-      printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-      exit(2);
-  }
-  text=SDL_CreateTextureFromSurface(ren,Stext);
-  SDL_FreeSurface(Stext);
-  if (text==NULL) {
-    SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-    return 1;
-  }
-  SDL_Rect Rtext;
-  Rtext.x=100;
-  Rtext.w=1300;
-  Rtext.h=190;
-  Rtext.y=5;
-  SDL_RenderCopy(ren,text,NULL,&Rtext);
-  SDL_DestroyTexture(text);
-
-  SDL_SetRenderTarget(ren,NULL);
-
   return 0;
 }
 
-int len(Lcarte l) {
-    if (l==NULL) {
-        return 0;
-    }
-    return 1+len(l->suiv);
+void creerTexturesReduitesCartes(LCarte jeuJoueur)
+{
+  while (jeuJoueur != NULL)
+  {
+    creerTextureReduiteCarte(jeuJoueur->carte);
+    jeuJoueur = jeuJoueur->suiv;
+  }
 }
 
-int isIn(Carte * c,Lcarte l) {
-    while (l!=NULL) {
-        if (l->carte==c) {
-          return 1;
-        }
-        l=l->suiv;
-    }
+void creerTexturesCompletesCartes(LCarte jeuJoueur)
+{
+  while (jeuJoueur != NULL)
+  {
+    creerTextureCompleteCarte(jeuJoueur->carte, 0, 0, 0);
+    jeuJoueur = jeuJoueur->suiv;
+  }
+}
+
+int len(LCarte l)
+{
+  if (l == NULL)
+  {
     return 0;
+  }
+  return 1 + len(l->suiv);
 }
 
-int idIsIn(int id,Lcarte l) {
-  while (l!=NULL) {
-    if (l->carte->id==id) {
+int isIn(Carte *c, LCarte l)
+{
+  while (l != NULL)
+  {
+    if (l->carte == c)
+    {
       return 1;
     }
-    l=l->suiv;
+    l = l->suiv;
   }
   return 0;
 }
 
-Carte * inBoard(int idboard,Lcarte l) {
-    while (l!=NULL) {
-        if (l->carte->idboard==idboard) {
-          return l->carte;
-        }
-        l=l->suiv;
+int idIsIn(int id, LCarte l)
+{
+  while (l != NULL)
+  {
+    if (l->carte->id == id)
+    {
+      return 1;
     }
-    return NULL;
-}
-
-Lcarte ajoutTete(Lcarte l,Carte * c) {
-    Lcarte newl;
-    newl=calloc(1,sizeof(*newl));
-    if (newl==NULL) {
-        printf("\nImpossible de rejouter cet élement dans la liste (echec calloc)\n");
-    }
-    newl->carte=c;
-    newl->suiv=l;
-    newl->Rcarte=NULL;
-    return newl;
-}
-
-Lcarte retirerCarte(Lcarte l,Carte * c) {
-    Lcarte tmp;
-    if (l==NULL) {
-      return NULL;
-    }
-    if (l->carte==c) {
-      tmp=l->suiv;
-      free(l->Rcarte);
-      free(l);
-      return tmp;
-    }
-    l->suiv=retirerCarte(l->suiv,c);
-    return l;
-}
-
-SDL_Rect * copieRect(SDL_Rect * r) {
-    SDL_Rect * nr;
-    nr=calloc(1,sizeof(*nr));
-    if (nr==NULL) {
-        printf("Impossible d'allouer la mémoire pour le rectangle\n");
-        return NULL;
-    }
-    nr->x=r->x;
-    nr->y=r->y;
-    nr->w=r->w;
-    nr->h=r->h;
-    return nr;
-}
-
-Lcarte pioche(Lcarte jeuJoueur,Lcarte * deckJoueur) {
-  if (*deckJoueur!=NULL) {
-    Carte * cartetmp;
-    cartetmp=(*deckJoueur)->carte;
-    jeuJoueur=ajoutTete(jeuJoueur,cartetmp);
-    *deckJoueur=retirerCarte(*deckJoueur,cartetmp);
-    return jeuJoueur;
+    l = l->suiv;
   }
-  else {
-    return jeuJoueur;
-  }
+  return 0;
 }
 
-Carte * piocheRandom(SDL_Renderer * ren, TTF_Font * dejavu, int type) {
-  int r = rand();
-  int cartesBadLemon[17] = {2,3,4,5,213,214,216,217,218,221,222,224,226,237,248,249,250};
-  int cartesKayzer[12]= {6,204,205,206,209,211,215,218,233,243,250,252};
-  int cartesMusique[3]={9,207,208};
-  int cartesSuppo[7]={12,207,210,217,219,229,239};
-  int cartesTheReed[8]={13,203,225,228,231,240,245,246};
-  int cartesRexyz[7]={15,204,209,212,228,236,250};
-
-  switch(type) {
-    case 1: //BadLemon 213,214,216,217,218,221,222,224,226,237,248,249,250,2,3,4,5
-      
-      return idtocard(cartesBadLemon[r%4],ren,dejavu);
-    case 2: //Kayzer 6,204,205,206,209,211,215,218,233,243,250,252
-      
-      return idtocard(cartesKayzer[r%1],ren,dejavu);
-    case 3: //Musique 9,207,208
-      
-      return idtocard(cartesMusique[r%1],ren,dejavu);
-    case 4: //Suppo 12,207,210,217,219,229,239
-      
-      return idtocard(cartesSuppo[r%1],ren,dejavu);
-    case 5: //TheReed 13,203,225,228,231,240,245,246
-      
-      return idtocard(cartesTheReed[r%2],ren,dejavu);
-    case 6: //Rexyz 15,204,209,212,228,236,250
-      
-      return idtocard(cartesRexyz[r%1],ren,dejavu);
-    default:
-      break;
+Carte *inBoard(int idboard, LCarte l)
+{
+  while (l != NULL)
+  {
+    if (l->carte->idboard == idboard)
+    {
+      return l->carte;
+    }
+    l = l->suiv;
   }
   return NULL;
 }
 
-Lcarte refreshAttaque(Lcarte l) {
-    Lcarte a=l;
-    while (a!=NULL) {
-        a->carte->peutAttaquer=SDL_TRUE;
-        a=a->suiv;
-    }
-    return l;
+LCarte ajoutTete(LCarte l, Carte *c)
+{
+  LCarte newl;
+  newl = calloc(1, sizeof(*newl));
+  if (newl == NULL)
+  {
+    printf("\nImpossible de rejouter cet élement dans la liste (echec calloc)\n");
+  }
+  newl->carte = c;
+  newl->suiv = l;
+  newl->RCarte = NULL;
+  return newl;
 }
 
-void refreshCarte(SDL_Renderer * ren,Carte * c,TTF_Font * dejavu,SDL_Rect * Raff, int modifPv,int modifAtt,int modifCout) {
-    switch(c->genre) {
-        case 1:
-          creerTextureCarte(ren,c,dejavu ,modifPv,modifAtt,modifCout);
-          break;
-        case 2:
-          creerTextureSort(ren,c,dejavu,modifCout);
-          break;
-        case 3:
-          creerTextureSort(ren,c,dejavu,modifCout);
-          break;
-        default:
-          printf("ERREUR REFRESH CARTE\n");
-          break;
-    }
-    SDL_RenderCopy(ren,c->TcarteComplet,NULL,Raff);
-}
-
-Lcarte refreshBoardJoueur(SDL_Renderer* ren,TTF_Font * dejavu,Lcarte boardJoueur,Lcarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain) {
-    //Fonction chargé de refresh les creatures mortes et les effets de terrain
-    Lcarte board=boardJoueur;
-    Lcarte tmp;
-    if (terrainJoueur!=NULL) {
-      if (terrainJoueur->effetDirect(terrainJoueur,ren,NULL,NULL,&boardJoueur,NULL,effetPVTerrainJoueur,effetAttTerrainJoueur,effetCoutTerrain,NULL) != 1) {
-          printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n",terrainJoueur->nom);
-      }
-    }
-    while (board!=NULL) {
-        if (board->carte->pv+(*effetPVTerrainJoueur)<=0) {
-            tmp=board->suiv;
-            if (board->carte->raleDagonie(board->carte,ren,dejavu,provocationJoueur,&boardJoueur,NULL) != 1) {
-                printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",board->carte->nom);
-            }
-            if (isIn(board->carte,*provocationJoueur)) {
-                *provocationJoueur=retirerCarte(*provocationJoueur,board->carte);
-            }
-            boardJoueur=retirerCarte(boardJoueur,board->carte);
-        }
-        else {
-          tmp=board->suiv;
-        }
-        board=tmp;
-    }
-    return boardJoueur;
-}
-
-Lcarte refreshBoardEnnemi(SDL_Renderer* ren,TTF_Font * dejavu,Lcarte boardEnnemi,Lcarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int* effetAttTerrainEnnemi,int *effetCoutTerrain) {
-    Lcarte board=boardEnnemi;
-    Lcarte tmp;
-    if (terrainEnnemi!=NULL) {
-      if (terrainEnnemi->effetDirect(terrainEnnemi,ren,NULL,NULL,&boardEnnemi,NULL,effetPVTerrainEnnemi,effetAttTerrainEnnemi,effetCoutTerrain,NULL) != 1) {
-          printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n",terrainEnnemi->nom);
-      }
-    }
-    while (board!=NULL) {
-        if (board->carte->pv+(*effetPVTerrainEnnemi)<=0) {
-            tmp=board->suiv;
-            if (board->carte->raleDagonie(board->carte,ren,dejavu,provocationEnnemi,&boardEnnemi,NULL) != 1) {
-                printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",board->carte->nom);
-            }
-            if (isIn(board->carte,*provocationEnnemi)) {
-                *provocationEnnemi=retirerCarte(*provocationEnnemi,board->carte);
-            }
-            boardEnnemi=retirerCarte(boardEnnemi,board->carte);
-        }
-        else {
-          tmp=board->suiv;
-        }
-        board=tmp;
-    }
-    return boardEnnemi;
-}
-
-Carte * carteClique(SDL_Point * mousePos,Lcarte jeuJoueur,Lcarte boardEnnemi,Lcarte boardJoueur) {
-    while (jeuJoueur!=NULL) {
-      if (jeuJoueur->Rcarte!=NULL) {
-        if (SDL_PointInRect(mousePos,jeuJoueur->Rcarte)) {
-            return jeuJoueur->carte;
-        }
-      }
-      jeuJoueur=jeuJoueur->suiv;
-    }
-    while (boardEnnemi!=NULL) {
-      if (boardEnnemi->Rcarte!=NULL) {
-        if (SDL_PointInRect(mousePos,boardEnnemi->Rcarte)) {
-            return boardEnnemi->carte;
-        }
-      }
-      boardEnnemi=boardEnnemi->suiv;
-    }
-    while (boardJoueur!=NULL) {
-      if (boardJoueur->Rcarte!=NULL) {
-        if (SDL_PointInRect(mousePos,boardJoueur->Rcarte)) {
-            return boardJoueur->carte;
-        }
-      }
-      boardJoueur=boardJoueur->suiv;
-    }
+LCarte retirerCarte(LCarte l, Carte *c)
+{
+  LCarte tmp;
+  if (l == NULL)
+  {
     return NULL;
+  }
+  if (l->carte == c)
+  {
+    tmp = l->suiv;
+    free(l->RCarte);
+    free(l);
+    return tmp;
+  }
+  l->suiv = retirerCarte(l->suiv, c);
+  return l;
 }
 
-Lcarte creerListeCarte(SDL_Renderer * ren,TTF_Font * dejavu) {
-    Lcarte listeCarte = NULL;
-    Carte * tmp;
-
-    //JJLR
-    tmp = creerJJ(ren,dejavu);
-    if (tmp == NULL) {
-      printf("Impossible d'ajouter JJLR\n");
-    }
-    else {
-      listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //BadLemon
-    tmp = creerBadLemon(ren,dejavu);
-    if (tmp == NULL) {
-      printf("Impossible d'ajouter BadLemon\n");
-    }
-    else {
-      listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Erwann
-    tmp=creerErwann(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Erwann\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Erwannn
-    tmp=creerErwannn(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Erwannn\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Erwannnn
-    tmp=creerErwannnn(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Erwannnn\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Kayzer
-    tmp=creerKayzer(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Kayzer\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //PizzaBoy21
-    tmp=creerPizzaBoy(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter PizzaBoy21\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //BryanGaming
-    tmp=creerBryanGaming(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter BryanGaming\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Mantaro
-    tmp=creerMantaro(ren,dejavu);
-    if (tmp==NULL) {
-      printf("\nImpossible d'ajouter Mantaro");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Lucio
-    tmp=creerLucio(ren,dejavu);
-    if (tmp==NULL) {
-      printf("\nImpossible d'ajouter Lucio");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Winston
-    tmp=creerWinston(ren,dejavu);
-    if (tmp==NULL) {
-      printf("\nImpossible d'ajouter Winston");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Suppo
-    tmp=creerSuppo(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Suppo\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //TheReed
-    tmp=creerTheReed(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter TheReed\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //JeanLassalle
-    tmp=creerJeanLassalle(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Jean Lassalle\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Rexyz
-    tmp=creerRexyz(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Rexyz\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Lipton
-    tmp=creerLipton(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Lipton\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Jack
-    tmp=creerJack(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Erwann\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //lespetitesbites
-    tmp=creerLesPetitesBites(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter lé peuttites bites\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //memphis
-    tmp=creerMemphis(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Memphis\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Japan
-    tmp=creerJapan(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Japan\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Appart JJ
-    tmp=creerAppartJJ(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Appart JJ\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Appart TR
-    tmp=creerAppartTR(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Appart TR\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Sel
-    tmp=creerSel(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Sel\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    //Fesses
-    tmp=creerFesses(ren,dejavu);
-    if (tmp==NULL) {
-        printf("\nImpossible d'ajouter Fesses\n");
-    }
-    else {
-        listeCarte=ajoutTete(listeCarte,tmp);
-    }
-
-    return listeCarte;
+LCarte pioche(LCarte jeuJoueur, LCarte *deckJoueur)
+{
+  if (*deckJoueur != NULL)
+  {
+    Carte *cartetmp;
+    cartetmp = (*deckJoueur)->carte;
+    jeuJoueur = ajoutTete(jeuJoueur, cartetmp);
+    *deckJoueur = retirerCarte(*deckJoueur, cartetmp);
+    return jeuJoueur;
+  }
+  else
+  {
+    return jeuJoueur;
+  }
 }
 
-int effetDirectProvocation(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * Lprovoc= provoc;
-    *Lprovoc=ajoutTete(*Lprovoc,c);
-    return 1;
+Carte *piocheRandom(int type)
+{
+  int r = rand();
+  int cartesBadLemon[17] = {2, 3, 4, 5, 213, 214, 216, 217, 218, 221, 222, 224, 226, 237, 248, 249, 250};
+  int cartesKayzer[12] = {6, 204, 205, 206, 209, 211, 215, 218, 233, 243, 250, 252};
+  int cartesMusique[3] = {9, 207, 208};
+  int cartesSuppo[7] = {12, 207, 210, 217, 219, 229, 239};
+  int cartesTheReed[8] = {13, 203, 225, 228, 231, 240, 245, 246};
+  int cartesRexyz[7] = {15, 204, 209, 212, 228, 236, 250};
+
+  switch (type)
+  {
+  case 1: //BadLemon 213,214,216,217,218,221,222,224,226,237,248,249,250,2,3,4,5
+
+    return idtocard(cartesBadLemon[r % 4]);
+  case 2: //Kayzer 6,204,205,206,209,211,215,218,233,243,250,252
+
+    return idtocard(cartesKayzer[r % 1]);
+  case 3: //Musique 9,207,208
+
+    return idtocard(cartesMusique[r % 1]);
+  case 4: //Suppo 12,207,210,217,219,229,239
+
+    return idtocard(cartesSuppo[r % 1]);
+  case 5: //TheReed 13,203,225,228,231,240,245,246
+
+    return idtocard(cartesTheReed[r % 2]);
+  case 6: //Rexyz 15,204,209,212,228,236,250
+
+    return idtocard(cartesRexyz[r % 1]);
+  default:
+    break;
+  }
+  return NULL;
 }
 
-int effetDirectNeutre(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    return 1;
+LCarte refreshAttaque(LCarte l)
+{
+  LCarte a = l;
+  while (a != NULL)
+  {
+    a->carte->peutAttaquer = SDL_TRUE;
+    a = a->suiv;
+  }
+  return l;
 }
 
-int effetDirectBadLemon(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,1));
-    return 1;
-}
-
-int effetDirectKayzer(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,2));
-    return 1;
-}
-
-int effetDirectMantaro(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,3));
-    return 1;
-}
-
-int effetDirectSuppo(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,4));
-    return 1;
-}
-
-int effetDirectTheReed(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,5));
-    return 1;
-}
-
-int effetDirectRexyz(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d, void * jj) {
-    Lcarte * jeuJoueur = jj;
-    *jeuJoueur = ajoutTete(*jeuJoueur,piocheRandom(ren,dejavu,6));
-    return 1;
-}
-
-int effetDirectFesses(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d,void * jj) {
-    c->pv-=2;
-    return 1;
-}
-
-int effetDirectSel(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * bj,void * be,int *a,int * b, int * d,void * jj) {
-    Lcarte * boardEnnemi= be;
-    Lcarte tmpboard= *boardEnnemi;
-    while (tmpboard!=NULL) {
-        tmpboard->carte->pv-=2;
-        tmpboard=tmpboard->suiv;
+LCarte refreshBoardJoueur(LCarte boardJoueur, LCarte *provocationJoueur, Carte *terrainJoueur, int *effetPVTerrainJoueur, int *effetAttTerrainJoueur, int *effetCoutTerrain)
+{
+  //Fonction chargé de refresh les creatures mortes et les effets de terrain
+  LCarte board = boardJoueur;
+  LCarte tmp;
+  if (terrainJoueur != NULL)
+  {
+    if (terrainJoueur->effetDirect(terrainJoueur, NULL, &boardJoueur, NULL, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrain, NULL) != 1)
+    {
+      printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n", terrainJoueur->nom);
     }
-    return 1;
-}
-
-int effetTerrainJapan(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
-    *effetCoutTerrain=-1;
-    *effetAttTerrain=0;
-    *effetPVTerrain=0;
-    return 1;
-}
-
-int effetTerrainMemphis(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
-    *effetCoutTerrain=0;
-    *effetAttTerrain=0;
-    *effetPVTerrain=1;
-    return 1;
-}
-
-int effetTerrainAppartTR(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
-    *effetCoutTerrain=0;
-    *effetAttTerrain=1;
-    *effetPVTerrain=0;
-    return 1;
-}
-
-int effetTerrainAppartJJ(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
-    *effetCoutTerrain=1;
-    *effetAttTerrain=0;
-    *effetPVTerrain=0;
-    return 1;
-}
-
-int effetTerrainLesPetitesBites(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc,void * boardJoueur,void * boardEnnemi,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain, void * jj) {
-    *effetCoutTerrain=0;
-    *effetPVTerrain=0;
-    *effetAttTerrain=-1;
-    return 1;
-}
-
-int raleDagonieNeutre(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
-    return 1;
-}
-
-int raleDagonieWinston(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
-    Lcarte * bj = boardJoueur;
-    Lcarte tmpbj = *bj;
-    while (tmpbj!=NULL) {
-      tmpbj->carte->pv+=1;
-      tmpbj=tmpbj->suiv;
+  }
+  while (board != NULL)
+  {
+    if (board->carte->pv + (*effetPVTerrainJoueur) <= 0)
+    {
+      tmp = board->suiv;
+      if (board->carte->raleDagonie(board->carte, provocationJoueur, &boardJoueur, NULL) != 1)
+      {
+        printf("ERREUR LORS DU RALE D'AGONIE DE %s\n", board->carte->nom);
+      }
+      if (isIn(board->carte, *provocationJoueur))
+      {
+        *provocationJoueur = retirerCarte(*provocationJoueur, board->carte);
+      }
+      boardJoueur = retirerCarte(boardJoueur, board->carte);
     }
-    return 1;
+    else
+    {
+      tmp = board->suiv;
+    }
+    board = tmp;
+  }
+  return boardJoueur;
 }
 
-int raleDagonieLucio(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
-    Lcarte * bj = boardJoueur;
-    Lcarte tmpbj = *bj;
-    while (tmpbj!=NULL) {
-      tmpbj->carte->att+=1;
-      tmpbj=tmpbj->suiv;
+LCarte refreshBoardEnnemi(LCarte boardEnnemi, LCarte *provocationEnnemi, Carte *terrainEnnemi, int *effetPVTerrainEnnemi, int *effetAttTerrainEnnemi, int *effetCoutTerrain)
+{
+  LCarte board = boardEnnemi;
+  LCarte tmp;
+  if (terrainEnnemi != NULL)
+  {
+    if (terrainEnnemi->effetDirect(terrainEnnemi, NULL, &boardEnnemi, NULL, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrain, NULL) != 1)
+    {
+      printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n", terrainEnnemi->nom);
     }
-    return 1;
+  }
+  while (board != NULL)
+  {
+    if (board->carte->pv + (*effetPVTerrainEnnemi) <= 0)
+    {
+      tmp = board->suiv;
+      if (board->carte->raleDagonie(board->carte, provocationEnnemi, &boardEnnemi, NULL) != 1)
+      {
+        printf("ERREUR LORS DU RALE D'AGONIE DE %s\n", board->carte->nom);
+      }
+      if (isIn(board->carte, *provocationEnnemi))
+      {
+        *provocationEnnemi = retirerCarte(*provocationEnnemi, board->carte);
+      }
+      boardEnnemi = retirerCarte(boardEnnemi, board->carte);
+    }
+    else
+    {
+      tmp = board->suiv;
+    }
+    board = tmp;
+  }
+  return boardEnnemi;
 }
 
-int raleDagonieJeanLassalle(Carte * c,SDL_Renderer * ren,TTF_Font * dejavu,void * provoc, void * boardJoueur,void * boardEnnemi) {
-    Lcarte * bj = boardJoueur;
-    Carte * newJean = idtocard(14,ren,dejavu);
-    if (estInvocable(newJean,*bj)) {
-      *bj = ajoutTete(*bj,newJean);
-      newJean = idtocard(14,ren,dejavu);
-      *bj = ajoutTete(*bj,newJean);
+Carte *carteClique(SDL_Point *mousePos, LCarte jeuJoueur, LCarte boardEnnemi, LCarte boardJoueur)
+{
+  while (jeuJoueur != NULL)
+  {
+    if (jeuJoueur->RCarte != NULL)
+    {
+      if (SDL_PointInRect(mousePos, jeuJoueur->RCarte))
+      {
+        return jeuJoueur->carte;
+      }
     }
-    else {
-      *bj = ajoutTete(*bj,newJean);
+    jeuJoueur = jeuJoueur->suiv;
+  }
+  while (boardEnnemi != NULL)
+  {
+    if (boardEnnemi->RCarte != NULL)
+    {
+      if (SDL_PointInRect(mousePos, boardEnnemi->RCarte))
+      {
+        return boardEnnemi->carte;
+      }
     }
-    return 1;
+    boardEnnemi = boardEnnemi->suiv;
+  }
+  while (boardJoueur != NULL)
+  {
+    if (boardJoueur->RCarte != NULL)
+    {
+      if (SDL_PointInRect(mousePos, boardJoueur->RCarte))
+      {
+        return boardJoueur->carte;
+      }
+    }
+    boardJoueur = boardJoueur->suiv;
+  }
+  return NULL;
 }
 
-Carte * creerJJ(SDL_Renderer * ren, TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,1,"JeanJack Le Roux","image/cartes/JJLR.png",1,0,100,100,1,SDL_FALSE);
-  tmp->effetDirect=&effetDirectNeutre;
-  tmp->raleDagonie=&raleDagonieNeutre;
+LCarte creerListeDeToutesLesCartes()
+{
+  LCarte listeCarte = NULL;
+  Carte *tmp;
+
+  //JJLR
+  tmp = creerJJ();
+  if (tmp == NULL)
+  {
+    printf("Impossible d'ajouter JJLR\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //BadLemon
+  tmp = creerBadLemon();
+  if (tmp == NULL)
+  {
+    printf("Impossible d'ajouter BadLemon\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Erwann
+  tmp = creerErwann();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Erwann\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Erwannn
+  tmp = creerErwannn();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Erwannn\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Erwannnn
+  tmp = creerErwannnn();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Erwannnn\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Kayzer
+  tmp = creerKayzer();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Kayzer\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //PizzaBoy21
+  tmp = creerPizzaBoy();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter PizzaBoy21\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //BryanGaming
+  tmp = creerBryanGaming();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter BryanGaming\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Mantaro
+  tmp = creerMantaro();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Mantaro");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Lucio
+  tmp = creerLucio();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Lucio");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Winston
+  tmp = creerWinston();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Winston");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Suppo
+  tmp = creerSuppo();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Suppo\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //TheReed
+  tmp = creerTheReed();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter TheReed\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //JeanLassalle
+  tmp = creerJeanLassalle();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Jean Lassalle\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Rexyz
+  tmp = creerRexyz();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Rexyz\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Lipton
+  tmp = creerLipton();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Lipton\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Jack
+  tmp = creerJack();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Erwann\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //lespetitesbites
+  tmp = creerLesPetitesBites();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter lé peuttites bites\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //memphis
+  tmp = creerMemphis();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Memphis\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Japan
+  tmp = creerJapan();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Japan\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Appart JJ
+  tmp = creerAppartJJ();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Appart JJ\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Appart TR
+  tmp = creerAppartTR();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Appart TR\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Sel
+  tmp = creerSel();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Sel\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Fesses
+  tmp = creerFesses();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Fesses\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  return listeCarte;
+}
+
+int effetDirectProvocation(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *Lprovoc = provoc;
+  *Lprovoc = ajoutTete(*Lprovoc, c);
+  return 1;
+}
+
+int effetDirectNeutre(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  return 1;
+}
+
+int effetDirectBadLemon(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(1));
+  return 1;
+}
+
+int effetDirectKayzer(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(2));
+  return 1;
+}
+
+int effetDirectMantaro(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(3));
+  return 1;
+}
+
+int effetDirectSuppo(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(4));
+  return 1;
+}
+
+int effetDirectTheReed(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(5));
+  return 1;
+}
+
+int effetDirectRexyz(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *jeuJoueur = jj;
+  *jeuJoueur = ajoutTete(*jeuJoueur, piocheRandom(6));
+  return 1;
+}
+
+int effetDirectFesses(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  c->pv -= 2;
+  return 1;
+}
+
+int effetDirectSel(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *boardEnnemi = be;
+  LCarte tmpboard = *boardEnnemi;
+  while (tmpboard != NULL)
+  {
+    tmpboard->carte->pv -= 2;
+    tmpboard = tmpboard->suiv;
+  }
+  return 1;
+}
+
+int effetTerrainJapan(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain, void *jj)
+{
+  *effetCoutTerrain = -1;
+  *effetAttTerrain = 0;
+  *effetPVTerrain = 0;
+  return 1;
+}
+
+int effetTerrainMemphis(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain, void *jj)
+{
+  *effetCoutTerrain = 0;
+  *effetAttTerrain = 0;
+  *effetPVTerrain = 1;
+  return 1;
+}
+
+int effetTerrainAppartTR(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain, void *jj)
+{
+  *effetCoutTerrain = 0;
+  *effetAttTerrain = 1;
+  *effetPVTerrain = 0;
+  return 1;
+}
+
+int effetTerrainAppartJJ(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain, void *jj)
+{
+  *effetCoutTerrain = 1;
+  *effetAttTerrain = 0;
+  *effetPVTerrain = 0;
+  return 1;
+}
+
+int effetTerrainLesPetitesBites(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain, void *jj)
+{
+  *effetCoutTerrain = 0;
+  *effetPVTerrain = 0;
+  *effetAttTerrain = -1;
+  return 1;
+}
+
+int raleDagonieNeutre(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi)
+{
+  return 1;
+}
+
+int raleDagonieWinston(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi)
+{
+  LCarte *bj = boardJoueur;
+  LCarte tmpbj = *bj;
+  while (tmpbj != NULL)
+  {
+    tmpbj->carte->pv += 1;
+    tmpbj = tmpbj->suiv;
+  }
+  return 1;
+}
+
+int raleDagonieLucio(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi)
+{
+  LCarte *bj = boardJoueur;
+  LCarte tmpbj = *bj;
+  while (tmpbj != NULL)
+  {
+    tmpbj->carte->att += 1;
+    tmpbj = tmpbj->suiv;
+  }
+  return 1;
+}
+
+int raleDagonieJeanLassalle(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi)
+{
+  LCarte *bj = boardJoueur;
+  Carte *newJean = idtocard(14);
+  if (estInvocable(newJean, *bj))
+  {
+    *bj = ajoutTete(*bj, newJean);
+    newJean = idtocard(14);
+    *bj = ajoutTete(*bj, newJean);
+  }
+  else
+  {
+    *bj = ajoutTete(*bj, newJean);
+  }
+  return 1;
+}
+
+Carte *creerJJ()
+{
+  Carte *tmp = creerCarte(1, "JeanJack Le Roux", "image/cartes/JJLR.png", 1, 0, 100, 100, 1, SDL_FALSE);
+  tmp->effetDirect = &effetDirectNeutre;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerBadLemon(SDL_Renderer * ren, TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,2,"BadLemon","image/cartes/BadLemon.png",1,1,1,1,1,SDL_FALSE);
-  tmp->effetDirect=&effetDirectBadLemon;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerBadLemon()
+{
+  Carte *tmp = creerCarte(2, "BadLemon", "image/cartes/BadLemon.png", 1, 1, 1, 1, 1, SDL_FALSE);
+  tmp->effetDirect = &effetDirectBadLemon;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerErwann(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,3,"Erwann","image/cartes/erwann.png",1,1,2,2,2,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerErwann()
+{
+  Carte *tmp = creerCarte(3, "Erwann", "image/cartes/erwann.png", 1, 1, 2, 2, 2, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerErwannn(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,4,"Erwannn","image/cartes/erwannn.png",1,1,4,4,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerErwannn()
+{
+  Carte *tmp = creerCarte(4, "Erwannn", "image/cartes/erwannn.png", 1, 1, 4, 4, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerErwannnn(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,5,"Erwannnn","image/cartes/erwannnn.png",1,1,8,8,8,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerErwannnn()
+{
+  Carte *tmp = creerCarte(5, "Erwannnn", "image/cartes/erwannnn.png", 1, 1, 8, 8, 8, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerKayzer(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,6,"Kayzer","image/cartes/kayzer.png",1,2,7,2,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectKayzer;
+Carte *creerKayzer()
+{
+  Carte *tmp = creerCarte(6, "Kayzer", "image/cartes/kayzer.png", 1, 2, 7, 2, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectKayzer;
   return tmp;
 }
 
-Carte * creerPizzaBoy(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,7,"PizzaBoy21","image/cartes/PizzaBoy21.png",1,0,1,2,1,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerPizzaBoy()
+{
+  Carte *tmp = creerCarte(7, "PizzaBoy21", "image/cartes/PizzaBoy21.png", 1, 0, 1, 2, 1, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerBryanGaming(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,8,"BryanGaming","image/cartes/BryanGaming.png",1,0,2,1,1,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerBryanGaming()
+{
+  Carte *tmp = creerCarte(8, "BryanGaming", "image/cartes/BryanGaming.png", 1, 0, 2, 1, 1, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerMantaro(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,9,"Mantaro","image/cartes/Mantaro.png",1,3,3,3,3,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectMantaro;
+Carte *creerMantaro()
+{
+  Carte *tmp = creerCarte(9, "Mantaro", "image/cartes/Mantaro.png", 1, 3, 3, 3, 3, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectMantaro;
   return tmp;
 }
 
-Carte * creerLucio(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,10,"Lucio","image/cartes/Lucio.png",1,0,5,3,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieLucio;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerLucio()
+{
+  Carte *tmp = creerCarte(10, "Lucio", "image/cartes/Lucio.png", 1, 0, 5, 3, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieLucio;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerWinston(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,11,"Winston","image/cartes/Winston.png",1,0,3,5,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieWinston;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerWinston()
+{
+  Carte *tmp = creerCarte(11, "Winston", "image/cartes/Winston.png", 1, 0, 3, 5, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieWinston;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerSuppo(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,12,"Suppo","image/cartes/Suppo.png",1,4,2,7,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectSuppo;
+Carte *creerSuppo()
+{
+  Carte *tmp = creerCarte(12, "Suppo", "image/cartes/Suppo.png", 1, 4, 2, 7, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectSuppo;
   return tmp;
 }
 
-Carte * creerTheReed(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,13,"TheReed","image/cartes/TheReed.png",1,5,5,4,4,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectTheReed;
+Carte *creerTheReed()
+{
+  Carte *tmp = creerCarte(13, "TheReed", "image/cartes/TheReed.png", 1, 5, 5, 4, 4, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectTheReed;
   return tmp;
 }
 
-Carte * creerJeanLassalle(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,14,"Jean Lassalle","image/cartes/jeanLassalle.png",1,0,1,1,8,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieJeanLassalle;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerJeanLassalle()
+{
+  Carte *tmp = creerCarte(14, "Jean Lassalle", "image/cartes/jeanLassalle.png", 1, 0, 1, 1, 8, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieJeanLassalle;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerRexyz(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,15,"Rexyz","image/cartes/Rexyz.png",1,6,3,2,2,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectRexyz;
+Carte *creerRexyz()
+{
+  Carte *tmp = creerCarte(15, "Rexyz", "image/cartes/Rexyz.png", 1, 6, 3, 2, 2, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectRexyz;
   return tmp;
 }
 
-Carte * creerLipton(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,19,"Lipton","image/cartes/Lipton.png",1,0,1,3,2,SDL_TRUE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectNeutre;
+Carte *creerLipton()
+{
+  Carte *tmp = creerCarte(19, "Lipton", "image/cartes/Lipton.png", 1, 0, 1, 3, 2, SDL_TRUE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte * creerJack(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,20,"Jack","image/cartes/jack.png",1,0,3,1,2,SDL_FALSE);
-  tmp->raleDagonie=&raleDagonieNeutre;
-  tmp->effetDirect=&effetDirectProvocation;
+Carte *creerJack()
+{
+  Carte *tmp = creerCarte(20, "Jack", "image/cartes/jack.png", 1, 0, 3, 1, 2, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectProvocation;
   return tmp;
 }
 
-Carte * creerSel(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,203,"Le Sel","image/cartes/sel.png",2,5,0,0,4,SDL_FALSE);
-  tmp->effetDirect=&effetDirectSel;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerSel()
+{
+  Carte *tmp = creerCarte(203, "Le Sel", "image/cartes/sel.png", 2, 5, 0, 0, 4, SDL_FALSE);
+  tmp->effetDirect = &effetDirectSel;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerFesses(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,223,"J'vais te faire les fesses","image/cartes/fesses.png",2,0,0,0,2,SDL_TRUE);
-  tmp->effetDirect=&effetDirectFesses;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerFesses()
+{
+  Carte *tmp = creerCarte(223, "J'vais te faire les fesses", "image/cartes/fesses.png", 2, 0, 0, 0, 2, SDL_TRUE);
+  tmp->effetDirect = &effetDirectFesses;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerJapan(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,103,"Japan Touch","image/cartes/japan.png",3,0,0,0,3,SDL_TRUE);
-  tmp->effetDirect=&effetTerrainJapan;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerJapan()
+{
+  Carte *tmp = creerCarte(103, "Japan Touch", "image/cartes/japan.png", 3, 0, 0, 0, 3, SDL_TRUE);
+  tmp->effetDirect = &effetTerrainJapan;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerMemphis(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,102,"Memphis Coffee","image/cartes/memphis.png",3,0,0,0,3,SDL_TRUE);
-  tmp->effetDirect=&effetTerrainMemphis;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerMemphis()
+{
+  Carte *tmp = creerCarte(102, "Memphis Coffee", "image/cartes/memphis.png", 3, 0, 0, 0, 3, SDL_TRUE);
+  tmp->effetDirect = &effetTerrainMemphis;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerAppartJJ(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,104,"L'appart de JeanJack","image/cartes/appartJJ.png",3,0,0,0,3,SDL_TRUE);
-  tmp->effetDirect=&effetTerrainAppartJJ;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerAppartJJ()
+{
+  Carte *tmp = creerCarte(104, "L'appart de JeanJack", "image/cartes/appartJJ.png", 3, 0, 0, 0, 3, SDL_TRUE);
+  tmp->effetDirect = &effetTerrainAppartJJ;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerAppartTR(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,105,"L'appart de TheReed","image/cartes/appartTR.png",3,0,0,0,3,SDL_TRUE);
-  tmp->effetDirect=&effetTerrainAppartTR;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerAppartTR()
+{
+  Carte *tmp = creerCarte(105, "L'appart de TheReed", "image/cartes/appartTR.png", 3, 0, 0, 0, 3, SDL_TRUE);
+  tmp->effetDirect = &effetTerrainAppartTR;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-Carte * creerLesPetitesBites(SDL_Renderer * ren,TTF_Font * dejavu) {
-  Carte * tmp = creerCarte(ren,dejavu,101,"Les Peuttites Bites","image/cartes/lespetitesbites.png",3,0,0,0,3,SDL_TRUE);
-  tmp->effetDirect=&effetTerrainLesPetitesBites;
-  tmp->raleDagonie=&raleDagonieNeutre;
+Carte *creerLesPetitesBites()
+{
+  Carte *tmp = creerCarte(101, "Les Peuttites Bites", "image/cartes/lespetitesbites.png", 3, 0, 0, 0, 3, SDL_TRUE);
+  tmp->effetDirect = &effetTerrainLesPetitesBites;
+  tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
 
-
-
-Carte * creerCarte(SDL_Renderer * ren,TTF_Font * dejavu,int id,char * nom,char * path,int genre,int type,int pv,int att,int cout,SDL_bool peutAttaquer) {
-    Carte * c;
-    c=calloc(1,sizeof(*c));
-    if (c==NULL) {
-        printf("\nImpossible d'ajouter la carte (erreur calloc)\n");
-        return NULL;
-    }
-    c->id=id;
-    c->nom=strdup(nom);
-    SDL_Texture * Tc = loadPictures(ren,path);
-    if (Tc==NULL) {
-        SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-        return NULL;
-    }
-    c->Tcarte=Tc;
-    c->TcarteComplet=NULL;
-    c->TcarteReduite=NULL;
-    c->genre=genre;
-    c->type=type;
-    c->pvMax=c->pv=pv;
-    c->attMax=c->att=att;
-    c->coutMax=c->cout=cout;
-    c->peutAttaquer=peutAttaquer;
-    switch (genre) {
-      case 1:
-        creerTextureCarte(ren,c,dejavu,0,0,0);
-        break;
-      case 2:
-        creerTextureSort(ren,c,dejavu,0);
-        break;
-      case 3:
-        creerTextureSort(ren,c,dejavu,0);
-        break;
-      default:
-        break;
-    }
-    return c;
+Carte *creerCarte(int id, char *nom, char *path, int genre, int type, int pv, int att, int cout, SDL_bool peutAttaquer)
+{
+  Carte *c;
+  c = calloc(1, sizeof(*c));
+  if (c == NULL)
+  {
+    printf("\nImpossible d'ajouter la carte (erreur calloc)\n");
+    return NULL;
+  }
+  c->id = id;
+  c->nom = strdup(nom);
+  SDL_Texture *Tc = loadPictures(path);
+  if (Tc == NULL)
+  {
+    SDL_Log("Unable to create texture from image :%s", SDL_GetError());
+    return NULL;
+  }
+  c->TCarte = Tc;
+  c->TCarteComplete = NULL;
+  c->TCarteReduite = NULL;
+  c->genre = genre;
+  c->type = type;
+  c->pvMax = c->pv = pv;
+  c->attMax = c->att = att;
+  c->coutMax = c->cout = cout;
+  c->peutAttaquer = peutAttaquer;
+  return c;
 }
 
-SDL_bool estInvocable(Carte * c, Lcarte board) {
-  if (isFull(board)) {
+SDL_bool estInvocable(Carte *c, LCarte board)
+{
+  if (isFull(board))
+  {
     return SDL_FALSE;
   }
-  if (c->id == 1) {
-    if (idIsIn(2,board)) {
-      if (idIsIn(6,board)) {
-        if (idIsIn(12,board)) {
-          if (idIsIn(13,board)) {
-            if (idIsIn(15,board)) {
+  if (c->id == 1)
+  {
+    if (idIsIn(2, board))
+    {
+      if (idIsIn(6, board))
+      {
+        if (idIsIn(12, board))
+        {
+          if (idIsIn(13, board))
+          {
+            if (idIsIn(15, board))
+            {
               return SDL_TRUE;
             }
           }
@@ -1056,113 +1056,149 @@ SDL_bool estInvocable(Carte * c, Lcarte board) {
   return SDL_TRUE;
 }
 
-SDL_bool isFull(Lcarte board) {
-    if (len(board)>=8) {
-      return SDL_TRUE;
-    }
-    return SDL_FALSE;
+SDL_bool isFull(LCarte board)
+{
+  if (len(board) >= 8)
+  {
+    return SDL_TRUE;
+  }
+  return SDL_FALSE;
 }
 
-Carte * idtocard(int i,SDL_Renderer * ren, TTF_Font * dejavu) {
-    Carte * tmp;
-    switch(i) {
-        case 1:
-          tmp=creerJJ(ren,dejavu);
-          return tmp;
-        case 2:
-          tmp=creerBadLemon(ren,dejavu);
-          return tmp;
-        case 3:
-          tmp=creerErwann(ren,dejavu);
-          return tmp;
-        case 4:
-          tmp=creerErwannn(ren,dejavu);
-          return tmp;
-        case 5:
-          tmp=creerErwannnn(ren,dejavu);
-          return tmp;
-        case 6:
-          tmp=creerKayzer(ren,dejavu);
-          return tmp;  
-        case 7:
-          tmp=creerPizzaBoy(ren,dejavu);
-          return tmp;
-        case 8:
-          tmp=creerBryanGaming(ren,dejavu);
-          return tmp;
-        case 9:
-          tmp=creerMantaro(ren,dejavu);
-          return tmp;
-        case 10:
-          tmp=creerLucio(ren,dejavu);
-          return tmp;
-        case 11:
-          tmp=creerWinston(ren,dejavu);
-          return tmp;
-        case 12:
-          tmp=creerSuppo(ren,dejavu);
-          return tmp;
-        case 13:
-          tmp=creerTheReed(ren,dejavu);
-          return tmp;
-        case 14:
-          tmp=creerJeanLassalle(ren,dejavu);
-          return tmp;
-        case 15:
-          tmp=creerRexyz(ren,dejavu);
-          return tmp;
-        case 19:
-          tmp=creerLipton(ren,dejavu);
-          return tmp;
-        case 20:
-          tmp=creerJack(ren,dejavu);
-          return tmp;
-        case 101:
-          tmp=creerLesPetitesBites(ren,dejavu);
-          return tmp;
-        case 102:
-          tmp=creerMemphis(ren,dejavu);
-          return tmp;
-        case 103:
-          tmp=creerJapan(ren,dejavu);
-          return tmp;
-        case 104:
-          tmp=creerAppartJJ(ren,dejavu);
-          return tmp;
-        case 105:
-          tmp=creerAppartTR(ren,dejavu);
-          return tmp;
-        case 203:
-          tmp=creerSel(ren,dejavu);
-          return tmp;
-        case 223:
-          tmp=creerFesses(ren,dejavu);
-          return tmp;
-        default:
-          printf("ID INCONNU \n");
-          return NULL;
-    }
+Carte *idtocard(int i)
+{
+  Carte *tmp;
+  switch (i)
+  {
+  case 1:
+    tmp = creerJJ();
+    return tmp;
+  case 2:
+    tmp = creerBadLemon();
+    return tmp;
+  case 3:
+    tmp = creerErwann();
+    return tmp;
+  case 4:
+    tmp = creerErwannn();
+    return tmp;
+  case 5:
+    tmp = creerErwannnn();
+    return tmp;
+  case 6:
+    tmp = creerKayzer();
+    return tmp;
+  case 7:
+    tmp = creerPizzaBoy();
+    return tmp;
+  case 8:
+    tmp = creerBryanGaming();
+    return tmp;
+  case 9:
+    tmp = creerMantaro();
+    return tmp;
+  case 10:
+    tmp = creerLucio();
+    return tmp;
+  case 11:
+    tmp = creerWinston();
+    return tmp;
+  case 12:
+    tmp = creerSuppo();
+    return tmp;
+  case 13:
+    tmp = creerTheReed();
+    return tmp;
+  case 14:
+    tmp = creerJeanLassalle();
+    return tmp;
+  case 15:
+    tmp = creerRexyz();
+    return tmp;
+  case 19:
+    tmp = creerLipton();
+    return tmp;
+  case 20:
+    tmp = creerJack();
+    return tmp;
+  case 101:
+    tmp = creerLesPetitesBites();
+    return tmp;
+  case 102:
+    tmp = creerMemphis();
+    return tmp;
+  case 103:
+    tmp = creerJapan();
+    return tmp;
+  case 104:
+    tmp = creerAppartJJ();
+    return tmp;
+  case 105:
+    tmp = creerAppartTR();
+    return tmp;
+  case 203:
+    tmp = creerSel();
+    return tmp;
+  case 223:
+    tmp = creerFesses();
+    return tmp;
+  default:
+    printf("ID INCONNU \n");
+    return NULL;
+  }
 }
 
-void libereListeCarte(Lcarte l) {
-    if (l!=NULL) {
-        Lcarte nl=l->suiv;
-
-        free(l->Rcarte);
-        libereCarte(l->carte);
-        free(l);
-        libereListeCarte(nl);
+void libereListeCarte(LCarte l)
+{
+  if (l)
+  {
+    LCarte nl = l->suiv;
+    if (l->RCarte) {
+      free(l->RCarte);
     }
+    libereCarte(l->carte);
+    free(l);
+    libereListeCarte(nl);
+  }
 }
 
-void libereCarte(Carte * c) {
-  if (c!=NULL){
-    if (c->Tcarte!=NULL) {
-        SDL_DestroyTexture(c->Tcarte);
+void libereCarte(Carte *c)
+{
+  if (c != NULL)
+  {
+    if (c->TCarte != NULL)
+    {
+      SDL_DestroyTexture(c->TCarte);
     }
-    if (c->TcarteComplet!=NULL) {
-        SDL_DestroyTexture(c->TcarteComplet);
+    if (c->TCarteComplete != NULL)
+    {
+      SDL_DestroyTexture(c->TCarteComplete);
+    }
+    if (c->TCarteReduite != NULL)
+    {
+      SDL_DestroyTexture(c->TCarteReduite);
     }
     free(c);
   }
+}
+
+Deck initDeck() {
+  Deck d;
+  d.nom = NULL;
+  d.deckList = NULL;
+  return d;
+}
+
+void libereDeck(Deck * d) {
+  if(d->nom) free(d->nom);
+  if(d->deckList) libereListeCarte(d->deckList);
+  d->nom = NULL;
+  d->deckList = NULL;
+}
+
+void afficherCarteDansLCarte(LCarte l) {
+   while(l) {
+        printf("%s\n",l->carte->nom);
+        l=l->suiv;
+   }
 }

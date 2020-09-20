@@ -11,25 +11,23 @@
 #include "SDL2/SDL_mixer.h"
 #include "SDL2/SDL_ttf.h"
 
-#if defined (WIN32)
-    #include <winsock2.h>
-    typedef int socklen_t;
-#elif defined (linux)
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <unistd.h>
-    #define INVALID_SOCKET -1
-    #define SOCKET_ERROR -1
-    #define closesocket(s) close(s)
-    typedef int SOCKET;
-    typedef struct sockaddr_in SOCKADDR_IN;
-    typedef struct sockaddr SOCKADDR;
-#endif
+#include <winsock2.h>
+typedef int socklen_t;
+
+extern Mix_Chunk *hover;
+extern Mix_Chunk *selectSE;
+extern SDL_Window *win;
+extern int winW;
+extern int winH;
+extern SDL_Renderer *ren;
+extern TTF_Font *dejavu;
+extern SDL_Color *coulTextBout;
+extern SDL_Color *coulFondBout;
+extern SDL_Color *coulFondDeck;
+extern SDL_Color *coulFondEcran;
 
 
-void afficheJeuJoueur(SDL_Renderer * ren,Lcarte jeuJoueur,int winW,int winH,TTF_Font * dejavu,SDL_bool refresh,int effetCoutTerrain) {
+void afficheJeuJoueur(LCarte jeuJoueur,SDL_bool refresh,int effetCoutTerrain) {
     int distanceInterCartes = (winW/10)+(winW/120);
     int posXcarte = (winW/10)+(5*winW)/120;
     SDL_Rect carte;
@@ -38,25 +36,25 @@ void afficheJeuJoueur(SDL_Renderer * ren,Lcarte jeuJoueur,int winW,int winH,TTF_
     carte.h=(winH/6);
     while (jeuJoueur!=NULL) {
         carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->Tcarte,NULL,NULL,&carte.w,&carte.h);
-        //SDL_RenderCopy(ren,jeuJoueur->carte->Tcarte,NULL,&carte);
-        if (jeuJoueur->Rcarte!=NULL) {
-            free(jeuJoueur->Rcarte);
-            jeuJoueur->Rcarte=NULL;
+        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
+        //SDL_RenderCopy(ren,jeuJoueur->carte->TCarte,NULL,&carte);
+        if (jeuJoueur->RCarte!=NULL) {
+            free(jeuJoueur->RCarte);
+            jeuJoueur->RCarte=NULL;
         }
-        jeuJoueur->Rcarte=copieRect(&carte);
+        jeuJoueur->RCarte=copieRect(&carte);
         if (refresh) {
-            refreshCarte(ren,jeuJoueur->carte,dejavu,&carte,0,0,effetCoutTerrain);
+            //TODO à voir il faut quand il faut refresh
         }
         else {
-            SDL_RenderCopy(ren,jeuJoueur->carte->TcarteComplet,NULL,&carte);
+            SDL_RenderCopy(ren,jeuJoueur->carte->TCarteComplete,NULL,&carte);
         }
         jeuJoueur=jeuJoueur->suiv;
         posXcarte+=distanceInterCartes;
     }
 }
 
-void afficheJeuEnnemi(SDL_Renderer * ren,SDL_Texture* Tdos,Lcarte jeuEnnemi,int winW,int winH) {
+void afficheJeuEnnemi(SDL_Texture* Tdos,LCarte jeuEnnemi) {
     int distanceInterCartes = (winW/10)+(winW/120);
     int posXcarte = (winW/10)+(5*winW)/120;
     SDL_Rect carte;
@@ -65,14 +63,14 @@ void afficheJeuEnnemi(SDL_Renderer * ren,SDL_Texture* Tdos,Lcarte jeuEnnemi,int 
     carte.h=(winH/6);
     while (jeuEnnemi!=NULL) {
         carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->Tcarte,NULL,NULL,&carte.w,&carte.h);
+        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
         SDL_RenderCopy(ren,Tdos,NULL,&carte);
         jeuEnnemi=jeuEnnemi->suiv;
         posXcarte+=distanceInterCartes;
     }
 }
 
-void afficheBoardJoueur(SDL_Renderer * ren, Lcarte boardJoueur,int winW,int winH,TTF_Font * dejavu,SDL_bool refresh,int effetPVTerrainJoueur,int effetAttTerrainJoueur) {
+void afficheBoardJoueur(LCarte boardJoueur,SDL_bool refresh,int effetPVTerrainJoueur,int effetAttTerrainJoueur) {
     int distanceInterCartes = (winW/10)+(winW/120);
     int posXcarte = (winW/10)+(5*winW)/120;
     SDL_Rect carte;
@@ -83,24 +81,24 @@ void afficheBoardJoueur(SDL_Renderer * ren, Lcarte boardJoueur,int winW,int winH
 
 
         carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->Tcarte,NULL,NULL,&carte.w,&carte.h);
-        if (boardJoueur->Rcarte!=NULL) {
-            free(boardJoueur->Rcarte);
-            boardJoueur->Rcarte=NULL;
+        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
+        if (boardJoueur->RCarte!=NULL) {
+            free(boardJoueur->RCarte);
+            boardJoueur->RCarte=NULL;
         }
-        boardJoueur->Rcarte=copieRect(&carte);
+        boardJoueur->RCarte=copieRect(&carte);
         if (refresh) {
-            refreshCarte(ren,boardJoueur->carte,dejavu,&carte,effetPVTerrainJoueur,effetAttTerrainJoueur,0);
+            //TODO à voir il faut quand il faut refresh
         }
         else {
-            SDL_RenderCopy(ren,boardJoueur->carte->TcarteComplet,NULL,&carte);
+            SDL_RenderCopy(ren,boardJoueur->carte->TCarteComplete,NULL,&carte);
         }
         boardJoueur=boardJoueur->suiv;
         posXcarte+=distanceInterCartes;
     }
 }
 
-void afficheBoardEnnemi(SDL_Renderer * ren, Lcarte boardEnnemi,int winW,int winH,TTF_Font * dejavu,SDL_bool refresh,int effetPVTerrainEnnemi,int effetAttTerrainEnnemi) {
+void afficheBoardEnnemi( LCarte boardEnnemi,SDL_bool refresh,int effetPVTerrainEnnemi,int effetAttTerrainEnnemi) {
     int distanceInterCartes = (winW/10)+(winW/120);
     int posXcarte = (winW/10)+(5*winW)/120;
     SDL_Rect carte;
@@ -111,25 +109,25 @@ void afficheBoardEnnemi(SDL_Renderer * ren, Lcarte boardEnnemi,int winW,int winH
 
 
         carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->Tcarte,NULL,NULL,&carte.w,&carte.h);
-        if (boardEnnemi->Rcarte!=NULL) {
-            free(boardEnnemi->Rcarte);
-            boardEnnemi->Rcarte=NULL;
+        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
+        if (boardEnnemi->RCarte!=NULL) {
+            free(boardEnnemi->RCarte);
+            boardEnnemi->RCarte=NULL;
         }
-        boardEnnemi->Rcarte=copieRect(&carte);
+        boardEnnemi->RCarte=copieRect(&carte);
         if (refresh) {
-            refreshCarte(ren,boardEnnemi->carte,dejavu,&carte,effetPVTerrainEnnemi,effetAttTerrainEnnemi,0);
+            //TODO à voir il faut quand il faut refresh
         }
         else {
-            SDL_RenderCopy(ren,boardEnnemi->carte->TcarteComplet,NULL,&carte);
+            SDL_RenderCopy(ren,boardEnnemi->carte->TCarteComplete,NULL,&carte);
         }
-        //SDL_RenderCopy(ren,boardEnnemi->carte->Tcarte,NULL,&carte);
+        //SDL_RenderCopy(ren,boardEnnemi->carte->TCarte,NULL,&carte);
         boardEnnemi=boardEnnemi->suiv;
         posXcarte+=distanceInterCartes;
     }
 }
 
-void afficheManaJoueur(SDL_Renderer * ren,SDL_Texture ** TmanaJoueur, int manaJoueur,int manaMaxJoueur,int winW,int winH,TTF_Font * dejavu,SDL_bool refresh) {
+void afficheManaJoueur(SDL_Texture ** TmanaJoueur, int manaJoueur,int manaMaxJoueur,SDL_bool refresh) {
     SDL_Color coulTextBout={255,255,255,255};
     SDL_Rect RmanaJoueur;
     RmanaJoueur.x=winW/120;
@@ -153,7 +151,7 @@ void afficheManaJoueur(SDL_Renderer * ren,SDL_Texture ** TmanaJoueur, int manaJo
     }
 }
 
-void afficheManaEnnemi(SDL_Renderer * ren,SDL_Texture ** TmanaEnnemi, int manaEnnemi,int manaMaxEnnemi,int winW,int winH,TTF_Font * dejavu,SDL_bool refresh) {
+void afficheManaEnnemi(SDL_Texture ** TmanaEnnemi, int manaEnnemi,int manaMaxEnnemi,SDL_bool refresh) {
     SDL_Color coulTextBout={255,255,255,255};
     SDL_Rect RmanaEnnemi;
     RmanaEnnemi.x=winW/120;
@@ -177,7 +175,7 @@ void afficheManaEnnemi(SDL_Renderer * ren,SDL_Texture ** TmanaEnnemi, int manaEn
     }
 }
 
-void affichePvJoueur(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,int winW,int winH,SDL_Rect * RpvJoueur, TTF_Font * dejavu,SDL_bool refresh) {
+void affichePvJoueur(SDL_Texture ** TpvJoueur,int pvJoueur,SDL_Rect * RpvJoueur,SDL_bool refresh) {
   SDL_Color coulTextBout={255,255,255,255};
   if (refresh) {
       if (*TpvJoueur!=NULL) {
@@ -202,7 +200,7 @@ void affichePvJoueur(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,in
       tmpText=TTF_RenderText_Solid(dejavu,textpv,coulTextBout);
       TtmpText=SDL_CreateTextureFromSurface(ren,tmpText);
       SDL_FreeSurface(tmpText);
-      TtmpCoeur=loadPictures(ren,"image/menu/coeur.png");
+      TtmpCoeur=loadPictures("image/menu/coeur.png");
       SDL_SetRenderTarget(ren,TtmpImage);
       if (SDL_SetRenderDrawColor(ren,255,0,0,255)<0) {
           printf("Erreur lors du changement de couleur : %s",SDL_GetError());
@@ -218,7 +216,7 @@ void affichePvJoueur(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,in
   SDL_RenderCopy(ren,*TpvJoueur,NULL,RpvJoueur);
 }
 
-void affichePvEnnemi(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,int winW,int winH,SDL_Rect * RpvEnnemi, TTF_Font * dejavu,SDL_bool refresh) {
+void affichePvEnnemi(SDL_Texture ** TpvJoueur,int pvJoueur,SDL_Rect * RpvEnnemi,SDL_bool refresh) {
   SDL_Color coulTextBout={255,255,255,255};
   if (refresh) {
       if (*TpvJoueur!=NULL) {
@@ -243,7 +241,7 @@ void affichePvEnnemi(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,in
       tmpText=TTF_RenderText_Solid(dejavu,textpv,coulTextBout);
       TtmpText=SDL_CreateTextureFromSurface(ren,tmpText);
       SDL_FreeSurface(tmpText);
-      TtmpCoeur=loadPictures(ren,"image/menu/coeur.png");
+      TtmpCoeur=loadPictures("image/menu/coeur.png");
       SDL_SetRenderTarget(ren,TtmpImage);
       if (SDL_SetRenderDrawColor(ren,255,0,0,255)<0) {
           printf("Erreur lors du changement de couleur : %s",SDL_GetError());
@@ -259,12 +257,12 @@ void affichePvEnnemi(SDL_Renderer * ren,SDL_Texture ** TpvJoueur,int pvJoueur,in
   SDL_RenderCopy(ren,*TpvJoueur,NULL,RpvEnnemi);
 }
 
-int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font * dejavu) {
+int jeu(int sock,LCarte deckChoisi) {
 
     int winW;
     int winH;
 
-    SDL_GetWindowSize(fen,&winW,&winH);
+    SDL_GetWindowSize(win,&winW,&winH);
     SDL_Color coulTextBout={255,255,255,255};
     SDL_Color coulTextVictory={0,0,100,255};
 
@@ -281,17 +279,16 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
     int manaEnnemi=0;
     int manaMaxEnnemi=0;
 
-    Lcarte deckJoueur=deckChoisi;
-    Lcarte deckEnnemi=NULL;
+    LCarte deckJoueur=deckChoisi;
 
-    Lcarte jeuJoueur=NULL;
-    Lcarte jeuEnnemi=NULL;
+    LCarte jeuJoueur=NULL;
+    LCarte jeuEnnemi=NULL;
 
-    Lcarte boardJoueur=NULL;
-    Lcarte boardEnnemi=NULL;
+    LCarte boardJoueur=NULL;
+    LCarte boardEnnemi=NULL;
 
-    Lcarte provocationJoueur=NULL;
-    Lcarte provocationEnnemi=NULL;
+    LCarte provocationJoueur=NULL;
+    LCarte provocationEnnemi=NULL;
 
     Carte * terrainJoueur = NULL;
     Carte * terrainEnnemi = NULL;
@@ -303,11 +300,11 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
     SDL_bool refresh = SDL_TRUE;
 
     //Position d'une carte mise en évidence
-    SDL_Rect RcarteCentre;
-    RcarteCentre.x=winW/3;
-    RcarteCentre.y=winH/4;
-    RcarteCentre.h=winH/2;
-    RcarteCentre.w=winW/3;
+    SDL_Rect RCarteCentre;
+    RCarteCentre.x=winW/3;
+    RCarteCentre.y=winH/4;
+    RCarteCentre.h=winH/2;
+    RCarteCentre.w=winW/3;
 
     //Position vie joueur
     SDL_Rect RpvJoueur;
@@ -399,7 +396,7 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
 
     //Dos des cartes
     SDL_Texture * Tdos;
-    Tdos=loadPictures(ren,"image/cartes/dos.png");
+    Tdos=loadPictures("image/cartes/dos.png");
     if (Tdos==NULL) {
         SDL_Log("Unable to create texture from image :%s",SDL_GetError());
         return 1;
@@ -646,7 +643,7 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                     if (tour && sorttmp!=NULL && event.button.button==SDL_BUTTON_LEFT) {
                       cartetmp=carteClique(&mousePos,boardJoueur,boardEnnemi,NULL);
                       if (cartetmp!=NULL) {
-                        if (sorttmp->effetDirect(cartetmp,ren,dejavu,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
+                        if (sorttmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
                             printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
                         }
                         manaJoueur-=sorttmp->cout+effetCoutTerrainJoueur;
@@ -670,7 +667,7 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                         if (cartetmp!=NULL && cartetmp->genre==1 && cartetmp->cout + effetCoutTerrainJoueur<= manaJoueur) {
                             if (estInvocable(cartetmp,boardJoueur)) {
                                 boardJoueur=ajoutTete(boardJoueur,cartetmp);
-                                if (cartetmp->effetDirect(cartetmp,ren,dejavu,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
+                                if (cartetmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
                                     printf("ERREUR LORS DE L'INVOCATION DE %s\n",cartetmp->nom);
                                 }
                                 manaJoueur-=cartetmp->cout+effetCoutTerrainJoueur;
@@ -691,7 +688,7 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                               sorttmp=cartetmp;
                           }
                           else {
-                              if (cartetmp->effetDirect(cartetmp,ren,dejavu,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
+                              if (cartetmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
                                   printf("ERREUR LORS DU SORT %s\n",cartetmp->nom);
                               }
                               manaJoueur-=cartetmp->cout+effetCoutTerrainJoueur;
@@ -740,8 +737,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
             //Fond zone de Jeu
             SDL_RenderCopy(ren,zoneJeu,NULL,&RzoneJeu);
             if (refresh) {
-                boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
             }
             if (pvEnnemi<=0 && victory==0) {
                 tour = 0;
@@ -753,28 +750,28 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
             SDL_RenderCopy(ren,bout1,NULL,&RBout1);
             SDL_RenderCopy(ren,TtextBout1,NULL,&RtextBout1);
 
-            afficheJeuJoueur(ren,jeuJoueur,winW,winH,dejavu,refresh,effetCoutTerrainJoueur);
-            afficheJeuEnnemi(ren,Tdos,jeuEnnemi,winW,winH);
+            afficheJeuJoueur(jeuJoueur,refresh,effetCoutTerrainJoueur);
+            afficheJeuEnnemi(Tdos,jeuEnnemi);
 
-            afficheBoardJoueur(ren,boardJoueur,winW,winH,dejavu,refresh,effetPVTerrainJoueur,effetAttTerrainJoueur);
-            afficheBoardEnnemi(ren,boardEnnemi,winW,winH,dejavu,refresh,effetPVTerrainEnnemi,effetAttTerrainEnnemi);
+            afficheBoardJoueur(boardJoueur,refresh,effetPVTerrainJoueur,effetAttTerrainJoueur);
+            afficheBoardEnnemi(boardEnnemi,refresh,effetPVTerrainEnnemi,effetAttTerrainEnnemi);
 
-            afficheManaJoueur(ren,&TmanaJoueur,manaJoueur,manaMaxJoueur,winW,winH,dejavu,refresh);
-            afficheManaEnnemi(ren,&TmanaEnnemi,manaEnnemi,manaMaxEnnemi,winW,winH,dejavu,refresh);
+            afficheManaJoueur(&TmanaJoueur,manaJoueur,manaMaxJoueur,refresh);
+            afficheManaEnnemi(&TmanaEnnemi,manaEnnemi,manaMaxEnnemi,refresh);
 
-            affichePvJoueur(ren,&TpvJoueur,pvJoueur,winW,winH,&RpvJoueur,dejavu,refresh);
-            affichePvEnnemi(ren,&TpvEnnemi,pvEnnemi,winW,winH,&RpvEnnemi,dejavu,refresh);
+            affichePvJoueur(&TpvJoueur,pvJoueur,&RpvJoueur,refresh);
+            affichePvEnnemi(&TpvEnnemi,pvEnnemi,&RpvEnnemi,refresh);
 
             if (terrainJoueur!=NULL) {
-                SDL_RenderCopy(ren,terrainJoueur->TcarteComplet,NULL,&RterrainJoueur);
+                SDL_RenderCopy(ren,terrainJoueur->TCarteComplete,NULL,&RterrainJoueur);
             }
 
             if (terrainEnnemi!=NULL) {
-                SDL_RenderCopy(ren,terrainEnnemi->TcarteComplet,NULL,&RterrainEnnemi);
+                SDL_RenderCopy(ren,terrainEnnemi->TCarteComplete,NULL,&RterrainEnnemi);
             }
 
             if (gonfle) {
-                SDL_RenderCopy(ren,carteGonfle->TcarteComplet,NULL,&RcarteCentre);
+                SDL_RenderCopy(ren,carteGonfle->TCarteComplete,NULL,&RCarteCentre);
             }
 
             if (victory==1) {
@@ -793,17 +790,17 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
             }
 
             //Rafraichissement des textures en cas de modifications de taille de la fenêtre
-            SDL_GetWindowSize(fen,&winW,&winH);
+            SDL_GetWindowSize(win,&winW,&winH);
             //zoneJeu
             RzoneJeu.w=winW;
             RzoneJeu.h=(winH*2)/3;
             RzoneJeu.x=0;
             RzoneJeu.y=winH/6;
             //Carte au centre
-            RcarteCentre.x=winW/3;
-            RcarteCentre.y=winH/4;
-            RcarteCentre.h=winH/2;
-            RcarteCentre.w=winW/3;
+            RCarteCentre.x=winW/3;
+            RCarteCentre.y=winH/4;
+            RCarteCentre.h=winH/2;
+            RCarteCentre.w=winW/3;
             //Bout1
             RtextBout1.x=(2*winW)/3+winW/60;
             RtextBout1.y=(winH*43)/60+(winH/100);
@@ -881,17 +878,17 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                       }
                       if (bufftmp[0]=='3') {
                           sscanf(bufftmp,"%d %d",&instruction,&idtmp);
-                          cartetmp=idtocard(idtmp,ren,dejavu);
+                          cartetmp=idtocard(idtmp);
                           cartetmp->idboard=idboard;
                           idboard++;
                           boardEnnemi=ajoutTete(boardEnnemi,cartetmp);
-                          if (cartetmp->effetDirect(cartetmp,ren,dejavu,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
+                          if (cartetmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
                               printf("ERREUR LORS DE L'INVOCATION DE %s\n",cartetmp->nom);
                           }
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
                       if (bufftmp[0]=='4') {
                           sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
@@ -905,8 +902,8 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           carteAttaquante->pv-=cartetmp->att+effetAttTerrainEnnemi;
                           carteAttaquante=NULL;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
 
                       }
                       if (bufftmp[0]=='5') {
@@ -916,7 +913,7 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                       }
                       if (bufftmp[0]=='6') {
                           sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
-                          cartetmp=idtocard(idtmp,ren,dejavu);
+                          cartetmp=idtocard(idtmp);
                           if (idtmp2) {
                             if (terrainEnnemi!=NULL) {
                                 libereCarte(terrainEnnemi);
@@ -933,35 +930,35 @@ int jeu(int sock,Lcarte deckChoisi,SDL_Window * fen,SDL_Renderer * ren,TTF_Font 
                           }
                           refresh=SDL_TRUE;
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
-                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
                       if (bufftmp[0]=='7') {
                           sscanf(bufftmp,"%d %d",&instruction,&idtmp);
-                          cartetmp=idtocard(idtmp,ren,dejavu);
-                          if (cartetmp->effetDirect(cartetmp,ren,dejavu,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
+                          cartetmp=idtocard(idtmp);
+                          if (cartetmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
                               printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
                           }
                           manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                       }
 
                       if (bufftmp[0]=='8') {
                           sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
-                          sorttmp=idtocard(idtmp,ren,dejavu);
+                          sorttmp=idtocard(idtmp);
                           cartetmp=inBoard(idtmp2,boardJoueur);
                           if (cartetmp==NULL) {
                               cartetmp=inBoard(idtmp2,boardEnnemi);
                           }
-                          if (sorttmp->effetDirect(cartetmp,ren,dejavu,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
+                          if (sorttmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
                               printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
                           }
                           manaEnnemi-=sorttmp->cout+effetCoutTerrainEnnemi;
                           refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(ren,dejavu,boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(ren,dejavu,boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
+                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
+                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
                           sorttmp=NULL;
                       }
 
