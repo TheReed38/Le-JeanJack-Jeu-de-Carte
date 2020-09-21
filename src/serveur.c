@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     }
 
     adressSocketS.sin_family=AF_INET;
-    adressSocketS.sin_port=htons(25565);
+    adressSocketS.sin_port=htons(45565);
     adressSocketS.sin_addr.s_addr=htonl(INADDR_ANY);//inet_addr("2");
 
     printf("Socket à l'adresse %s\n",inet_ntoa(adressSocketS.sin_addr));

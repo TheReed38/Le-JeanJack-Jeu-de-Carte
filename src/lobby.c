@@ -193,7 +193,7 @@ int lobby()
                 /* Configuration de la connexion */
                 sin.sin_addr.s_addr = inet_addr(ipAddress);
                 sin.sin_family = AF_INET;
-                sin.sin_port = htons(25565);
+                sin.sin_port = htons(45565);
 
                 /* Si le client arrive à se connecter */
                 if (connect(sock, (SOCKADDR *)&sin, sizeof(sin)) != SOCKET_ERROR)
