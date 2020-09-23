@@ -258,8 +258,8 @@ int deck()
             {
               noDeck += 1;
               sprintf(nomFichier, "deck%d", noDeck);
+              playerPrompt("Renseignez le nom du deck", &(nouveauDeck.nom));
             }
-            playerPrompt("Renseignez le nom du deck (16 caractères max)", &(nouveauDeck.nom));
             if (sauvDeck(nomFichier, nouveauDeck) == 1)
             {
               printf("ERREUR SAUVERGARDE DECK\n");

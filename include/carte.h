@@ -46,10 +46,12 @@ Carte * inBoard(int idboard,LCarte l);
 LCarte ajoutTete(LCarte l,Carte * c);
 LCarte retirerCarte(LCarte l,Carte * c);
 LCarte creerListeDeToutesLesCartes();
-LCarte pioche(LCarte jeuJoueur,LCarte * deckJoueur);
+int pioche(LCarte * jeuJoueur,LCarte * deckJoueur);
 Carte * idtocard(int i);
 void libereListeCarte(LCarte l);
 void libereCarte(Carte * c);
+void incrementeJeu(LCarte * l);
+void decrementeJeu(LCarte * l);
 
 
 
@@ -68,11 +70,17 @@ Carte * creerSuppo();
 Carte * creerTheReed();
 Carte * creerJeanLassalle();
 Carte * creerRexyz();
+Carte * creerPhiid();
 Carte * creerLipton();
 Carte * creerJack();
+Carte * creerJeanMi();
+Carte * creerCthulhu();
+Carte * creerKim();
+Carte * creerShrek();
 
 Carte * creerLesPetitesBites();
 Carte * creerSel();
+Carte * creerAllStar();
 Carte * creerFesses();
 Carte * creerMemphis();
 Carte * creerJapan();
@@ -86,11 +94,11 @@ SDL_bool estInvocable(Carte * c, LCarte board);
 SDL_bool isFull(LCarte board);
 
 LCarte refreshAttaque(LCarte l);
-LCarte refreshBoardJoueur(LCarte boardJoueur,LCarte * provocationJoueur,Carte * terrainJoueur,int *effetPVTerrainJoueur,int *effetAttTerrainJoueur,int *effetCoutTerrain);
-LCarte refreshBoardEnnemi(LCarte boardEnnemi,LCarte * provocationEnnemi,Carte * terrainEnnemi,int *effetPVTerrainEnnemi,int *effetAttTerrainEnnemi,int *effetCoutTerrain);
+LCarte refreshBoard(LCarte boardJoueur,LCarte * provocation,Carte * terrain,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain);
 Carte * carteClique(SDL_Point * mousePos,LCarte jeuJoueur,LCarte boardEnnemi,LCarte boardJoueur);
 
 int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout);
+void refreshTexturesCompletesCartes(LCarte jeuJoueur, int modifPv, int modifAtt, int modifCout);
 int refreshTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout);
 int creerTextureReduiteCarte(Carte *c);
 void creerTexturesReduitesCartes(LCarte jeuJoueur);

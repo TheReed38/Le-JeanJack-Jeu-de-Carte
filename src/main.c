@@ -16,6 +16,7 @@ int winW, winH;
 int isOnFullscreen;
 SDL_Renderer *ren;
 Mix_Music *playTheme;
+Mix_Music *allStar;
 Mix_Chunk *hover;
 Mix_Chunk *selectSE;
 SDL_Color *coulTextBout;
@@ -130,6 +131,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevIns, LPSTR lpszArgument, 
     deckTheme = Mix_LoadMUS("sound/music/deckTheme.wav");
     lobbyTheme = Mix_LoadMUS("sound/music/lobbyTheme.wav");
     playTheme = Mix_LoadMUS("sound/music/battle.wav");
+    allStar = Mix_LoadMUS("sound/music/allStar.wav");
     hover = Mix_LoadWAV("sound/se/click1.ogg");
     selectSE = Mix_LoadWAV("sound/se/click2.ogg");
 

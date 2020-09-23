@@ -130,6 +130,9 @@ int lobby()
 
       //Pour quitter
       case SDL_QUIT:
+        libereListeCarte(deck1.deckList);
+        libereListeCarte(deck2.deckList);
+        libereListeCarte(deck3.deckList);
         libereTextureLobby(boutonTrouverUnServeur, boutonRetour, zoneDecks, boutonDeck1, boutonDeck2, boutonDeck3, texteAttente);
         return 1;
         break;
@@ -314,7 +317,6 @@ int lobby()
           }
 
           buffer[n] = '\0';
-          printf("%s", buffer);
           if (!strcmp("0", buffer))
           {
             printf("\nLe jeu peut commencer\n");

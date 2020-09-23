@@ -53,9 +53,9 @@ int main(int argc, char *argv[])
       exit(EXIT_FAILURE);
     }
 
-    SOCKET socketJ1;
-    SOCKADDR_IN adressSocketJ1;
-    socklen_t adrSockJ1Size=sizeof(adressSocketJ1);
+    SOCKET socketJ1, socketJ2;
+    SOCKADDR_IN adressSocketJ1, adressSocketJ2;
+    socklen_t adrSockJ1Size=sizeof(adressSocketJ1), adrSockJ2Size=sizeof(adressSocketJ2);
 
     if (listen(socketServeur,5)) {
       printf("Echec listen socket Serveur\n");
@@ -64,16 +64,6 @@ int main(int argc, char *argv[])
 
     socketJ1=accept(socketServeur,(SOCKADDR*)&adressSocketJ1,&adrSockJ1Size);
     printf("Le joueur 1 s'est connecté avec succès avec la socket %d de %s:%d\n", socketJ1, inet_ntoa(adressSocketJ1.sin_addr), htons(adressSocketJ1.sin_port));
-
-
-    SOCKET socketJ2;
-    SOCKADDR_IN adressSocketJ2;
-    socklen_t adrSockJ2Size=sizeof(adressSocketJ2);
-
-    if (listen(socketServeur,5)) {
-      printf("Echec listen socket Serveur\n");
-      exit(EXIT_FAILURE);
-    }
 
     socketJ2=accept(socketServeur,(SOCKADDR*)&adressSocketJ2,&adrSockJ2Size);
     printf("Le joueur 2 s'est connecté avec succès avec la socket %d de %s:%d\n", socketJ2, inet_ntoa(adressSocketJ2.sin_addr), htons(adressSocketJ2.sin_port));

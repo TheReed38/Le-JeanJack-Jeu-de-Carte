@@ -13,27 +13,7 @@ extern SDL_Color *coulTextBout;
 extern SDL_Color *coulFondBout;
 extern SDL_Color *coulFondDeck;
 extern SDL_Color *coulFondEcran;
-
-SDL_Texture *creerTextureTexte(char *text, SDL_Color *color, int *w, int *h)
-{
-  SDL_Texture *TtextBout = NULL;
-  SDL_Surface *textBout = NULL;
-  textBout = TTF_RenderUTF8_Blended(dejavu, text, *color);
-  if (!textBout)
-  {
-    printf("TTF_RenderUTF8_Blended: %s\n", TTF_GetError());
-    exit(2);
-  }
-  TtextBout = SDL_CreateTextureFromSurface(ren, textBout);
-  SDL_FreeSurface(textBout);
-  if (TtextBout == NULL)
-  {
-    SDL_Log("Unable to create texture from image :%s", SDL_GetError());
-    return NULL;
-  }
-  SDL_QueryTexture(TtextBout, NULL, NULL, w, h);
-  return TtextBout;
-}
+extern Mix_Music *allStar;
 
 int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout)
 {
@@ -73,7 +53,8 @@ int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout
       SDL_DestroyTexture(TtextPv);
       SDL_DestroyTexture(TtextAttaque);
     }
-    else {
+    else
+    {
       SDL_RenderCopy(ren, c->TCarte, NULL, &RCarte);
       SDL_RenderCopy(ren, TtextCout, NULL, &RtextCout);
       SDL_DestroyTexture(TtextCout);
@@ -86,9 +67,16 @@ int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout
 
 int refreshTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout)
 {
-  SDL_DestroyTexture(c->TCarteComplete);
-  c->TCarteComplete = NULL;
-  return creerTextureCompleteCarte(c, modifPv, modifAtt, modifCout);
+  if (c)
+  {
+    if (c->TCarteComplete)
+    {
+      SDL_DestroyTexture(c->TCarteComplete);
+      c->TCarteComplete = NULL;
+    }
+    return creerTextureCompleteCarte(c, modifPv, modifAtt, modifCout);
+  }
+  return 0;
 }
 
 //Texture reduite utilisée pendant la création de nouveaux decks
@@ -111,6 +99,15 @@ void creerTexturesReduitesCartes(LCarte jeuJoueur)
   while (jeuJoueur != NULL)
   {
     creerTextureReduiteCarte(jeuJoueur->carte);
+    jeuJoueur = jeuJoueur->suiv;
+  }
+}
+
+void refreshTexturesCompletesCartes(LCarte jeuJoueur, int modifPv, int modifAtt, int modifCout)
+{
+  while (jeuJoueur != NULL)
+  {
+    refreshTextureCompleteCarte(jeuJoueur->carte, modifPv, modifAtt, modifCout);
     jeuJoueur = jeuJoueur->suiv;
   }
 }
@@ -204,19 +201,39 @@ LCarte retirerCarte(LCarte l, Carte *c)
   return l;
 }
 
-LCarte pioche(LCarte jeuJoueur, LCarte *deckJoueur)
+void incrementeJeu(LCarte *l)
+{
+  *l = ajoutTete(*l, idtocard(1));
+}
+void decrementeJeu(LCarte *l)
+{
+  *l = (*l)->suiv;
+}
+
+LCarte piocheI(LCarte jeuJoueur, LCarte *deckJoueur, int i)
+{
+  if (i)
+  {
+    return piocheI(jeuJoueur, &((*deckJoueur)->suiv), i - 1);
+  }
+  Carte *cartetmp;
+  cartetmp = (*deckJoueur)->carte;
+  jeuJoueur = ajoutTete(jeuJoueur, cartetmp);
+  *deckJoueur = retirerCarte(*deckJoueur, cartetmp);
+  return jeuJoueur;
+}
+
+int pioche(LCarte *jeuJoueur, LCarte *deckJoueur)
 {
   if (*deckJoueur != NULL)
   {
-    Carte *cartetmp;
-    cartetmp = (*deckJoueur)->carte;
-    jeuJoueur = ajoutTete(jeuJoueur, cartetmp);
-    *deckJoueur = retirerCarte(*deckJoueur, cartetmp);
-    return jeuJoueur;
+    int r = rand();
+    *jeuJoueur = piocheI(*jeuJoueur, deckJoueur, r % (len(*deckJoueur)));
+    return 0;
   }
   else
   {
-    return jeuJoueur;
+    return 1;
   }
 }
 
@@ -267,30 +284,30 @@ LCarte refreshAttaque(LCarte l)
   return l;
 }
 
-LCarte refreshBoardJoueur(LCarte boardJoueur, LCarte *provocationJoueur, Carte *terrainJoueur, int *effetPVTerrainJoueur, int *effetAttTerrainJoueur, int *effetCoutTerrain)
+LCarte refreshBoard(LCarte boardJoueur, LCarte *provocation, Carte *terrain, int *effetPVTerrain, int *effetAttTerrain, int *effetCoutTerrain)
 {
   //Fonction chargé de refresh les creatures mortes et les effets de terrain
   LCarte board = boardJoueur;
   LCarte tmp;
-  if (terrainJoueur != NULL)
+  if (terrain != NULL)
   {
-    if (terrainJoueur->effetDirect(terrainJoueur, NULL, &boardJoueur, NULL, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrain, NULL) != 1)
+    if (terrain->effetDirect(terrain, NULL, &boardJoueur, NULL, effetPVTerrain, effetAttTerrain, effetCoutTerrain, NULL) != 1)
     {
-      printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n", terrainJoueur->nom);
+      printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n", terrain->nom);
     }
   }
   while (board != NULL)
   {
-    if (board->carte->pv + (*effetPVTerrainJoueur) <= 0)
+    if (board->carte->pv + (*effetPVTerrain) <= 0)
     {
       tmp = board->suiv;
-      if (board->carte->raleDagonie(board->carte, provocationJoueur, &boardJoueur, NULL) != 1)
+      if (board->carte->raleDagonie(board->carte, provocation, &boardJoueur, NULL) != 1)
       {
         printf("ERREUR LORS DU RALE D'AGONIE DE %s\n", board->carte->nom);
       }
-      if (isIn(board->carte, *provocationJoueur))
+      if (isIn(board->carte, *provocation))
       {
-        *provocationJoueur = retirerCarte(*provocationJoueur, board->carte);
+        *provocation = retirerCarte(*provocation, board->carte);
       }
       boardJoueur = retirerCarte(boardJoueur, board->carte);
     }
@@ -301,41 +318,6 @@ LCarte refreshBoardJoueur(LCarte boardJoueur, LCarte *provocationJoueur, Carte *
     board = tmp;
   }
   return boardJoueur;
-}
-
-LCarte refreshBoardEnnemi(LCarte boardEnnemi, LCarte *provocationEnnemi, Carte *terrainEnnemi, int *effetPVTerrainEnnemi, int *effetAttTerrainEnnemi, int *effetCoutTerrain)
-{
-  LCarte board = boardEnnemi;
-  LCarte tmp;
-  if (terrainEnnemi != NULL)
-  {
-    if (terrainEnnemi->effetDirect(terrainEnnemi, NULL, &boardEnnemi, NULL, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrain, NULL) != 1)
-    {
-      printf("ERREUR LORS DE L'EFFET DU TERRAIN DE %s\n", terrainEnnemi->nom);
-    }
-  }
-  while (board != NULL)
-  {
-    if (board->carte->pv + (*effetPVTerrainEnnemi) <= 0)
-    {
-      tmp = board->suiv;
-      if (board->carte->raleDagonie(board->carte, provocationEnnemi, &boardEnnemi, NULL) != 1)
-      {
-        printf("ERREUR LORS DU RALE D'AGONIE DE %s\n", board->carte->nom);
-      }
-      if (isIn(board->carte, *provocationEnnemi))
-      {
-        *provocationEnnemi = retirerCarte(*provocationEnnemi, board->carte);
-      }
-      boardEnnemi = retirerCarte(boardEnnemi, board->carte);
-    }
-    else
-    {
-      tmp = board->suiv;
-    }
-    board = tmp;
-  }
-  return boardEnnemi;
 }
 
 Carte *carteClique(SDL_Point *mousePos, LCarte jeuJoueur, LCarte boardEnnemi, LCarte boardJoueur)
@@ -546,6 +528,17 @@ LCarte creerListeDeToutesLesCartes()
     listeCarte = ajoutTete(listeCarte, tmp);
   }
 
+  //Phiid
+  tmp = creerPhiid();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Phiid\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
   //Lipton
   tmp = creerLipton();
   if (tmp == NULL)
@@ -561,7 +554,51 @@ LCarte creerListeDeToutesLesCartes()
   tmp = creerJack();
   if (tmp == NULL)
   {
-    printf("\nImpossible d'ajouter Erwann\n");
+    printf("\nImpossible d'ajouter Jack\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //JeanMi
+  tmp = creerJeanMi();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter JeanMi\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Cthulhu
+  tmp = creerCthulhu();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Cthulhu\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Kim Fromentier
+  tmp = creerKim();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Kim\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //Shrek
+  tmp = creerShrek();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter Shrek\n");
   }
   else
   {
@@ -628,6 +665,17 @@ LCarte creerListeDeToutesLesCartes()
   if (tmp == NULL)
   {
     printf("\nImpossible d'ajouter Sel\n");
+  }
+  else
+  {
+    listeCarte = ajoutTete(listeCarte, tmp);
+  }
+
+  //AllStar
+  tmp = creerAllStar();
+  if (tmp == NULL)
+  {
+    printf("\nImpossible d'ajouter AllStar\n");
   }
   else
   {
@@ -705,6 +753,18 @@ int effetDirectRexyz(Carte *c, void *provoc, void *bj, void *be, int *a, int *b,
 int effetDirectFesses(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
 {
   c->pv -= 2;
+  return 1;
+}
+
+int effetDirectAllStar(Carte *c, void *provoc, void *bj, void *be, int *a, int *b, int *d, void *jj)
+{
+  LCarte *boardJoueur = bj;
+  Carte *carte = idtocard(36);
+  if (estInvocable(carte, *boardJoueur))
+  {
+    *boardJoueur = ajoutTete(*boardJoueur, carte);
+  }
+  Mix_PlayMusic(allStar, -1);
   return 1;
 }
 
@@ -803,6 +863,14 @@ int raleDagonieJeanLassalle(Carte *c, void *provoc, void *boardJoueur, void *boa
   {
     *bj = ajoutTete(*bj, newJean);
   }
+  return 1;
+}
+
+int raleDagoniePhiid(Carte *c, void *provoc, void *boardJoueur, void *boardEnnemi)
+{
+  LCarte *bj = boardJoueur;
+  Carte *kim = idtocard(23);
+  *bj = ajoutTete(*bj, kim);
   return 1;
 }
 
@@ -926,6 +994,14 @@ Carte *creerRexyz()
   return tmp;
 }
 
+Carte *creerPhiid()
+{
+  Carte *tmp = creerCarte(16, "PhiiD", "image/cartes/phiid.png", 1, 0, 2, 2, 6, SDL_FALSE);
+  tmp->raleDagonie = &raleDagoniePhiid;
+  tmp->effetDirect = &effetDirectNeutre;
+  return tmp;
+}
+
 Carte *creerLipton()
 {
   Carte *tmp = creerCarte(19, "Lipton", "image/cartes/Lipton.png", 1, 0, 1, 3, 2, SDL_TRUE);
@@ -942,19 +1018,35 @@ Carte *creerJack()
   return tmp;
 }
 
-Carte *creerSel()
+Carte *creerJeanMi()
 {
-  Carte *tmp = creerCarte(203, "Le Sel", "image/cartes/sel.png", 2, 5, 0, 0, 4, SDL_FALSE);
-  tmp->effetDirect = &effetDirectSel;
+  Carte *tmp = creerCarte(21, "Jean Mi Du 13", "image/cartes/jeanMi.png", 1, 0, 3, 1, 1, SDL_FALSE);
   tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
-Carte *creerFesses()
+Carte *creerCthulhu()
 {
-  Carte *tmp = creerCarte(223, "J'vais te faire les fesses", "image/cartes/fesses.png", 2, 0, 0, 0, 2, SDL_TRUE);
-  tmp->effetDirect = &effetDirectFesses;
+  Carte *tmp = creerCarte(22, "Cthulhu", "image/cartes/cthulhu.png", 1, 0, 8, 8, 8, SDL_FALSE);
   tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
+  return tmp;
+}
+
+Carte *creerKim()
+{
+  Carte *tmp = creerCarte(23, "Kim Fromentier", "image/cartes/kimFromentier.png", 1, 0, 6, 6, 6, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
+  return tmp;
+}
+
+Carte *creerShrek()
+{
+  Carte *tmp = creerCarte(36, "Shrek", "image/cartes/shrek.png", 1, 0, 7, 7, 7, SDL_FALSE);
+  tmp->raleDagonie = &raleDagonieNeutre;
+  tmp->effetDirect = &effetDirectNeutre;
   return tmp;
 }
 
@@ -994,6 +1086,30 @@ Carte *creerLesPetitesBites()
 {
   Carte *tmp = creerCarte(101, "Les Peuttites Bites", "image/cartes/lespetitesbites.png", 3, 0, 0, 0, 3, SDL_TRUE);
   tmp->effetDirect = &effetTerrainLesPetitesBites;
+  tmp->raleDagonie = &raleDagonieNeutre;
+  return tmp;
+}
+
+Carte *creerSel()
+{
+  Carte *tmp = creerCarte(203, "Le Sel", "image/cartes/sel.png", 2, 5, 0, 0, 4, SDL_FALSE);
+  tmp->effetDirect = &effetDirectSel;
+  tmp->raleDagonie = &raleDagonieNeutre;
+  return tmp;
+}
+
+Carte *creerAllStar()
+{
+  Carte *tmp = creerCarte(208, "All Star", "image/cartes/allstar.png", 2, 3, 0, 0, 7, SDL_FALSE);
+  tmp->effetDirect = &effetDirectAllStar;
+  tmp->raleDagonie = &raleDagonieNeutre;
+  return tmp;
+}
+
+Carte *creerFesses()
+{
+  Carte *tmp = creerCarte(223, "J'vais te faire les fesses", "image/cartes/fesses.png", 2, 0, 0, 0, 2, SDL_TRUE);
+  tmp->effetDirect = &effetDirectFesses;
   tmp->raleDagonie = &raleDagonieNeutre;
   return tmp;
 }
@@ -1115,11 +1231,26 @@ Carte *idtocard(int i)
   case 15:
     tmp = creerRexyz();
     return tmp;
+  case 16:
+    tmp = creerPhiid();
+    return tmp;
   case 19:
     tmp = creerLipton();
     return tmp;
   case 20:
     tmp = creerJack();
+    return tmp;
+  case 21:
+    tmp = creerJeanMi();
+    return tmp;
+  case 22:
+    tmp = creerCthulhu();
+    return tmp;
+  case 23:
+    tmp = creerKim();
+    return tmp;
+  case 36:
+    tmp = creerShrek();
     return tmp;
   case 101:
     tmp = creerLesPetitesBites();
@@ -1139,6 +1270,9 @@ Carte *idtocard(int i)
   case 203:
     tmp = creerSel();
     return tmp;
+  case 208:
+    tmp = creerAllStar();
+    return tmp;
   case 223:
     tmp = creerFesses();
     return tmp;
@@ -1153,7 +1287,8 @@ void libereListeCarte(LCarte l)
   if (l)
   {
     LCarte nl = l->suiv;
-    if (l->RCarte) {
+    if (l->RCarte)
+    {
       free(l->RCarte);
     }
     libereCarte(l->carte);
@@ -1182,23 +1317,29 @@ void libereCarte(Carte *c)
   }
 }
 
-Deck initDeck() {
+Deck initDeck()
+{
   Deck d;
   d.nom = NULL;
   d.deckList = NULL;
   return d;
 }
 
-void libereDeck(Deck * d) {
-  if(d->nom) free(d->nom);
-  if(d->deckList) libereListeCarte(d->deckList);
+void libereDeck(Deck *d)
+{
+  if (d->nom)
+    free(d->nom);
+  if (d->deckList)
+    libereListeCarte(d->deckList);
   d->nom = NULL;
   d->deckList = NULL;
 }
 
-void afficherCarteDansLCarte(LCarte l) {
-   while(l) {
-        printf("%s\n",l->carte->nom);
-        l=l->suiv;
-   }
+void afficherCarteDansLCarte(LCarte l)
+{
+  while (l)
+  {
+    printf("%s\n", l->carte->nom);
+    l = l->suiv;
+  }
 }

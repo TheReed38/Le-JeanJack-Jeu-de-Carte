@@ -26,955 +26,828 @@ extern SDL_Color *coulFondBout;
 extern SDL_Color *coulFondDeck;
 extern SDL_Color *coulFondEcran;
 
+void refreshTextureSizesJeu(SDL_Rect *RBoutonPasserSonTour,
+                            SDL_Rect *RCarteCentre,
+                            SDL_Rect *RPvJoueur,
+                            SDL_Rect *RPvEnnemi,
+                            SDL_Rect *RTerrainJoueur,
+                            SDL_Rect *RTerrainEnnemi,
+                            SDL_Rect *RZoneJeu,
+                            SDL_Rect *RSeparationBoards,
+                            SDL_Rect *RVictoryOrDefeat,
+                            SDL_Rect *RCoeurJoueur,
+                            SDL_Rect *RCoeurEnnemi,
+                            SDL_Rect *RManaJoueur,
+                            SDL_Rect *RManaEnnemi)
+{
+    *RCarteCentre = initRect(winW / 3, winH / 4, winW / 3, winH / 2);
+    *RPvJoueur = initRect((7 * winW / 16), (42 * winH) / 60, (winW / 8), winH / 8);
+    *RPvEnnemi = initRect((7 * winW / 16), (18 * winH) / 60 - winH / 8, (winW / 8), winH / 8);
+    *RTerrainJoueur = initRect((winW / 60), (winH / 2) + (winH / 15) , (winW / 10), (winH / 6));
+    *RTerrainEnnemi = initRect((winW / 60), (winH / 2) - (winH / 15) - (winH / 6), (winW / 10), (winH / 6));
+    *RBoutonPasserSonTour = initRect((2 * winW) / 3, (winH * 43) / 60, winW / 4, winH / 10);
+    *RZoneJeu = initRect(0, winH / 6, winW, (winH * 2) / 3);
+    *RSeparationBoards = initRect(0, winH/2 - winH/60, winW, winH/30);
+    *RVictoryOrDefeat = initRect((winW / 8), (winH / 3), (3 * winW) / 4, (winH / 3));
+    *RCoeurJoueur = initRect((7 * winW / 16), (42 * winH) / 60, (winW / 8), winH / 8);
+    *RCoeurEnnemi = initRect((7 * winW / 16), (18 * winH) / 60 - winH / 8, (winW / 8), winH / 8);
+    *RManaJoueur = initRect(winW / 120, (winH * 5) / 6, (winW / 8), winH / 6);
+    *RManaEnnemi = initRect(winW / 120, 0, (winW / 8), winH / 6);
+}
 
-void afficheJeuJoueur(LCarte jeuJoueur,SDL_bool refresh,int effetCoutTerrain) {
-    int distanceInterCartes = (winW/10)+(winW/120);
-    int posXcarte = (winW/10)+(5*winW)/120;
-    SDL_Rect carte;
-    carte.y=(winH*5)/6;
-    carte.w=(winW/10);
-    carte.h=(winH/6);
-    while (jeuJoueur!=NULL) {
-        carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
-        //SDL_RenderCopy(ren,jeuJoueur->carte->TCarte,NULL,&carte);
-        if (jeuJoueur->RCarte!=NULL) {
+void libereTextureJeu(SDL_Texture *boutonPasserSonTour,
+                      SDL_Texture *TManaJoueur,
+                      SDL_Texture *TManaEnnemi,
+                      SDL_Texture *TPvJoueur,
+                      SDL_Texture *TPvEnnemi,
+                      SDL_Texture *TDos,
+                      SDL_Texture *TCoeur,
+                      SDL_Texture *zoneJeu,
+                      SDL_Texture *separationBoards,
+                      SDL_Texture *TDefaite,
+                      SDL_Texture *TVictoire)
+{
+    SDL_DestroyTexture(boutonPasserSonTour);
+    SDL_DestroyTexture(TManaJoueur);
+    SDL_DestroyTexture(TManaEnnemi);
+    SDL_DestroyTexture(TPvJoueur);
+    SDL_DestroyTexture(TPvEnnemi);
+    SDL_DestroyTexture(TDos);
+    SDL_DestroyTexture(TCoeur);
+    SDL_DestroyTexture(zoneJeu);
+    SDL_DestroyTexture(separationBoards);
+    SDL_DestroyTexture(TDefaite);
+    SDL_DestroyTexture(TVictoire);
+}
+
+void afficheJeuJoueur(LCarte jeuJoueur)
+{
+    int distanceInterCartes = (winW / 10) + (winW / 120);
+    int posXcarte = (winW / 10) + (5 * winW) / 120;
+    SDL_Rect carte = initRect(0, (winH * 5) / 6, winW / 10, winH / 6);
+    while (jeuJoueur)
+    {
+        carte.x = posXcarte;
+        if (jeuJoueur->RCarte)
+        {
             free(jeuJoueur->RCarte);
-            jeuJoueur->RCarte=NULL;
         }
-        jeuJoueur->RCarte=copieRect(&carte);
-        if (refresh) {
-            //TODO à voir il faut quand il faut refresh
-        }
-        else {
-            SDL_RenderCopy(ren,jeuJoueur->carte->TCarteComplete,NULL,&carte);
-        }
-        jeuJoueur=jeuJoueur->suiv;
-        posXcarte+=distanceInterCartes;
+        jeuJoueur->RCarte = copieRect(&carte);
+        SDL_RenderCopy(ren, jeuJoueur->carte->TCarteComplete, NULL, &carte);
+        jeuJoueur = jeuJoueur->suiv;
+        posXcarte += distanceInterCartes;
     }
 }
 
-void afficheJeuEnnemi(SDL_Texture* Tdos,LCarte jeuEnnemi) {
-    int distanceInterCartes = (winW/10)+(winW/120);
-    int posXcarte = (winW/10)+(5*winW)/120;
-    SDL_Rect carte;
-    carte.y=0;
-    carte.w=(winW/10);
-    carte.h=(winH/6);
-    while (jeuEnnemi!=NULL) {
-        carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
-        SDL_RenderCopy(ren,Tdos,NULL,&carte);
-        jeuEnnemi=jeuEnnemi->suiv;
-        posXcarte+=distanceInterCartes;
+void afficheJeuEnnemi(SDL_Texture *TDos, LCarte jeuEnnemi)
+{
+    int distanceInterCartes = (winW / 10) + (winW / 120);
+    int posXcarte = (winW / 10) + (5 * winW) / 120;
+    SDL_Rect carte = initRect(0, 0, winW / 10, winH / 6);
+    while (jeuEnnemi)
+    {
+        carte.x = posXcarte;
+        SDL_RenderCopy(ren, TDos, NULL, &carte);
+        jeuEnnemi = jeuEnnemi->suiv;
+        posXcarte += distanceInterCartes;
     }
 }
 
-void afficheBoardJoueur(LCarte boardJoueur,SDL_bool refresh,int effetPVTerrainJoueur,int effetAttTerrainJoueur) {
-    int distanceInterCartes = (winW/10)+(winW/120);
-    int posXcarte = (winW/10)+(5*winW)/120;
-    SDL_Rect carte;
-    carte.y=(winH/2)+(winH/60);
-    carte.w=(winW/10);
-    carte.h=(winH/6);
-    while (boardJoueur!=NULL) {
-
-
-        carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
-        if (boardJoueur->RCarte!=NULL) {
+void afficheBoardJoueur(LCarte boardJoueur)
+{
+    int distanceInterCartes = (winW / 10) + (winW / 120);
+    int posXcarte = (winW / 10) + (5 * winW) / 120;
+    SDL_Rect carte = initRect(0, (winH / 2) + (winH / 60), (winW / 10), winH / 6);
+    while (boardJoueur)
+    {
+        carte.x = posXcarte;
+        if (boardJoueur->RCarte)
+        {
             free(boardJoueur->RCarte);
-            boardJoueur->RCarte=NULL;
         }
-        boardJoueur->RCarte=copieRect(&carte);
-        if (refresh) {
-            //TODO à voir il faut quand il faut refresh
-        }
-        else {
-            SDL_RenderCopy(ren,boardJoueur->carte->TCarteComplete,NULL,&carte);
-        }
-        boardJoueur=boardJoueur->suiv;
-        posXcarte+=distanceInterCartes;
+        boardJoueur->RCarte = copieRect(&carte);
+        SDL_RenderCopy(ren, boardJoueur->carte->TCarteComplete, NULL, &carte);
+        boardJoueur = boardJoueur->suiv;
+        posXcarte += distanceInterCartes;
     }
 }
 
-void afficheBoardEnnemi( LCarte boardEnnemi,SDL_bool refresh,int effetPVTerrainEnnemi,int effetAttTerrainEnnemi) {
-    int distanceInterCartes = (winW/10)+(winW/120);
-    int posXcarte = (winW/10)+(5*winW)/120;
-    SDL_Rect carte;
-    carte.y=(winH/2)-(winH/6)-(winH/60);
-    carte.w=(winW/10);
-    carte.h=(winH/6);
-    while (boardEnnemi!=NULL) {
-
-
-        carte.x=posXcarte;
-        //SDL_QueryTexture(jeuJoueur->carte->TCarte,NULL,NULL,&carte.w,&carte.h);
-        if (boardEnnemi->RCarte!=NULL) {
+void afficheBoardEnnemi(LCarte boardEnnemi)
+{
+    int distanceInterCartes = (winW / 10) + (winW / 120);
+    int posXcarte = (winW / 10) + (5 * winW) / 120;
+    SDL_Rect carte = initRect(0, (winH / 2) - (winH / 6) - (winH / 60), winW / 10, winH / 6);
+    while (boardEnnemi)
+    {
+        carte.x = posXcarte;
+        if (boardEnnemi->RCarte)
+        {
             free(boardEnnemi->RCarte);
-            boardEnnemi->RCarte=NULL;
         }
-        boardEnnemi->RCarte=copieRect(&carte);
-        if (refresh) {
-            //TODO à voir il faut quand il faut refresh
-        }
-        else {
-            SDL_RenderCopy(ren,boardEnnemi->carte->TCarteComplete,NULL,&carte);
-        }
-        //SDL_RenderCopy(ren,boardEnnemi->carte->TCarte,NULL,&carte);
-        boardEnnemi=boardEnnemi->suiv;
-        posXcarte+=distanceInterCartes;
+        boardEnnemi->RCarte = copieRect(&carte);
+        SDL_RenderCopy(ren, boardEnnemi->carte->TCarteComplete, NULL, &carte);
+        boardEnnemi = boardEnnemi->suiv;
+        posXcarte += distanceInterCartes;
     }
 }
 
-void afficheManaJoueur(SDL_Texture ** TmanaJoueur, int manaJoueur,int manaMaxJoueur,SDL_bool refresh) {
-    SDL_Color coulTextBout={255,255,255,255};
-    SDL_Rect RmanaJoueur;
-    RmanaJoueur.x=winW/120;
-    RmanaJoueur.y=(winH*5)/6;
-    RmanaJoueur.w=(winW/8);
-    RmanaJoueur.h=winH/6;
-    if (refresh) {
-        if (*TmanaJoueur!=NULL) {
-            SDL_DestroyTexture(*TmanaJoueur);
-        }
-        SDL_Surface * tmp;
-        char textMana[6];
-        sprintf(textMana,"%d/%d",manaJoueur,manaMaxJoueur);
-        tmp=TTF_RenderText_Solid(dejavu,textMana,coulTextBout);
-        *TmanaJoueur=SDL_CreateTextureFromSurface(ren,tmp);
-        SDL_FreeSurface(tmp);
-        SDL_RenderCopy(ren,*TmanaJoueur,NULL,&RmanaJoueur);
+void refreshMana(SDL_Texture **TMana, int mana, int manaMax)
+{
+    if (*TMana)
+    {
+        SDL_DestroyTexture(*TMana);
     }
-    else {
-        SDL_RenderCopy(ren,*TmanaJoueur,NULL,&RmanaJoueur);
-    }
+    char textMana[6];
+    sprintf(textMana, "%d/%d", mana, manaMax);
+    *TMana = creerTextureTexte(textMana, coulTextBout, NULL, NULL);
 }
 
-void afficheManaEnnemi(SDL_Texture ** TmanaEnnemi, int manaEnnemi,int manaMaxEnnemi,SDL_bool refresh) {
-    SDL_Color coulTextBout={255,255,255,255};
-    SDL_Rect RmanaEnnemi;
-    RmanaEnnemi.x=winW/120;
-    RmanaEnnemi.y=0;
-    RmanaEnnemi.w=(winW/8);
-    RmanaEnnemi.h=winH/6;
-    if (refresh) {
-        if (*TmanaEnnemi!=NULL) {
-            SDL_DestroyTexture(*TmanaEnnemi);
-        }
-        SDL_Surface * tmp;
-        char textMana[6];
-        sprintf(textMana,"%d/%d",manaEnnemi,manaMaxEnnemi);
-        tmp=TTF_RenderText_Solid(dejavu,textMana,coulTextBout);
-        *TmanaEnnemi=SDL_CreateTextureFromSurface(ren,tmp);
-        SDL_FreeSurface(tmp);
-        SDL_RenderCopy(ren,*TmanaEnnemi,NULL,&RmanaEnnemi);
+void refreshPv(SDL_Texture **TPvJoueur, int pvJoueur)
+{
+    if (*TPvJoueur)
+    {
+        SDL_DestroyTexture(*TPvJoueur);
     }
-    else {
-        SDL_RenderCopy(ren,*TmanaEnnemi,NULL,&RmanaEnnemi);
-    }
+    char textPv[6];
+    sprintf(textPv, "%d", pvJoueur);
+    *TPvJoueur = creerTextureTexte(textPv, coulTextBout, NULL, NULL);
 }
 
-void affichePvJoueur(SDL_Texture ** TpvJoueur,int pvJoueur,SDL_Rect * RpvJoueur,SDL_bool refresh) {
-  SDL_Color coulTextBout={255,255,255,255};
-  if (refresh) {
-      if (*TpvJoueur!=NULL) {
-          SDL_DestroyTexture(*TpvJoueur);
-      }
-      SDL_Surface * tmpText;
-      SDL_Texture * TtmpText;
-      SDL_Texture * TtmpCoeur;
-      SDL_Texture * TtmpImage=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,(winW/5),(winH/5));;
-      SDL_Rect Rtext;
-      SDL_Rect Rcoeur;
-      Rtext.x=winH/31;
-      Rtext.y=winW/50;
-      Rtext.w=winW/7;
-      Rtext.h=winH/7;
-      Rcoeur.x=0;
-      Rcoeur.y=0;
-      Rcoeur.w=(winW/5);
-      Rcoeur.h=winH/5;
-      char textpv[6];
-      sprintf(textpv,"%d",pvJoueur);
-      tmpText=TTF_RenderText_Solid(dejavu,textpv,coulTextBout);
-      TtmpText=SDL_CreateTextureFromSurface(ren,tmpText);
-      SDL_FreeSurface(tmpText);
-      TtmpCoeur=loadPictures("image/menu/coeur.png");
-      SDL_SetRenderTarget(ren,TtmpImage);
-      if (SDL_SetRenderDrawColor(ren,255,0,0,255)<0) {
-          printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-      }
-      SDL_RenderFillRect(ren,&Rcoeur);
-      SDL_RenderCopy(ren,TtmpText,NULL,&Rtext);
-      SDL_RenderCopy(ren,TtmpCoeur,NULL,&Rcoeur);
-      SDL_DestroyTexture(TtmpText);
-      SDL_DestroyTexture(TtmpCoeur);
-      SDL_SetRenderTarget(ren,NULL);
-      *TpvJoueur=TtmpImage;
-  }
-  SDL_RenderCopy(ren,*TpvJoueur,NULL,RpvJoueur);
-}
-
-void affichePvEnnemi(SDL_Texture ** TpvJoueur,int pvJoueur,SDL_Rect * RpvEnnemi,SDL_bool refresh) {
-  SDL_Color coulTextBout={255,255,255,255};
-  if (refresh) {
-      if (*TpvJoueur!=NULL) {
-          SDL_DestroyTexture(*TpvJoueur);
-      }
-      SDL_Surface * tmpText;
-      SDL_Texture * TtmpText;
-      SDL_Texture * TtmpCoeur;
-      SDL_Texture * TtmpImage=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,(winW/5),(winH/5));;
-      SDL_Rect Rtext;
-      SDL_Rect Rcoeur;
-      Rtext.x=winH/31;
-      Rtext.y=winW/50;
-      Rtext.w=winW/7;
-      Rtext.h=winH/7;
-      Rcoeur.x=0;
-      Rcoeur.y=0;
-      Rcoeur.w=(winW/5);
-      Rcoeur.h=winH/5;
-      char textpv[6];
-      sprintf(textpv,"%d",pvJoueur);
-      tmpText=TTF_RenderText_Solid(dejavu,textpv,coulTextBout);
-      TtmpText=SDL_CreateTextureFromSurface(ren,tmpText);
-      SDL_FreeSurface(tmpText);
-      TtmpCoeur=loadPictures("image/menu/coeur.png");
-      SDL_SetRenderTarget(ren,TtmpImage);
-      if (SDL_SetRenderDrawColor(ren,255,0,0,255)<0) {
-          printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-      }
-      SDL_RenderFillRect(ren,&Rcoeur);
-      SDL_RenderCopy(ren,TtmpText,NULL,&Rtext);
-      SDL_RenderCopy(ren,TtmpCoeur,NULL,&Rcoeur);
-      SDL_DestroyTexture(TtmpText);
-      SDL_DestroyTexture(TtmpCoeur);
-      SDL_SetRenderTarget(ren,NULL);
-      *TpvJoueur=TtmpImage;
-  }
-  SDL_RenderCopy(ren,*TpvJoueur,NULL,RpvEnnemi);
-}
-
-int jeu(int sock,LCarte deckChoisi) {
-
-    int winW;
-    int winH;
-
-    SDL_GetWindowSize(win,&winW,&winH);
-    SDL_Color coulTextBout={255,255,255,255};
-    SDL_Color coulTextVictory={0,0,100,255};
-
+int jeu(int sock, LCarte deckChoisi)
+{
+    
+    printf("Initialisation en cours\n");
     char buffer[1024];
-    char * bufftmp;
+    char *bufftmp;
     int n;
 
-    //Jeu en lui-même
-    int pvJoueur=30;
-    int pvEnnemi=30;
+    int pvJoueur = 30;
+    int pvEnnemi = 30;
 
-    int manaJoueur=0;
-    int manaMaxJoueur=0;
-    int manaEnnemi=0;
-    int manaMaxEnnemi=0;
+    int manaJoueur = 0;
+    int manaMaxJoueur = 0;
+    int manaEnnemi = 0;
+    int manaMaxEnnemi = 0;
 
-    LCarte deckJoueur=deckChoisi;
+    LCarte deckJoueur = deckChoisi;
 
-    LCarte jeuJoueur=NULL;
-    LCarte jeuEnnemi=NULL;
+    LCarte jeuJoueur = NULL;
+    LCarte jeuEnnemi = NULL;
 
-    LCarte boardJoueur=NULL;
-    LCarte boardEnnemi=NULL;
+    LCarte boardJoueur = NULL;
+    LCarte boardEnnemi = NULL;
 
-    LCarte provocationJoueur=NULL;
-    LCarte provocationEnnemi=NULL;
+    LCarte provocationJoueur = NULL;
+    LCarte provocationEnnemi = NULL;
 
-    Carte * terrainJoueur = NULL;
-    Carte * terrainEnnemi = NULL;
+    Carte *terrainJoueur = NULL;
+    Carte *terrainEnnemi = NULL;
 
-    int gonfle=0; //Indique si une carte est gonflé ou pas
-    int idboard=0;
-    int tour = 0; //1 si tour de J1 en cours 0 sinon
+    int isSwollen = 0;
+    int idboard = 0;
+    int isYourTurn = 0;
 
-    SDL_bool refresh = SDL_TRUE;
-
-    //Position d'une carte mise en évidence
     SDL_Rect RCarteCentre;
-    RCarteCentre.x=winW/3;
-    RCarteCentre.y=winH/4;
-    RCarteCentre.h=winH/2;
-    RCarteCentre.w=winW/3;
+    SDL_Rect RCoeurJoueur;
+    SDL_Rect RCoeurEnnemi;
+    SDL_Rect RPvJoueur;
+    SDL_Rect RPvEnnemi;
+    SDL_Rect RTerrainJoueur;
+    SDL_Rect RTerrainEnnemi;
+    SDL_Rect RBoutonPasserSonTour;
+    SDL_Rect RZoneJeu;
+    SDL_Rect RSeparationBoards;
+    SDL_Rect RVictoryOrDefeat;
+    SDL_Rect RManaJoueur;
+    SDL_Rect RManaEnnemi;
 
-    //Position vie joueur
-    SDL_Rect RpvJoueur;
-    RpvJoueur.x=(7*winW/16);
-    RpvJoueur.y=(42*winH)/60;
-    RpvJoueur.w=(winW/8);
-    RpvJoueur.h=winH/8;
+    refreshTextureSizesJeu(&RBoutonPasserSonTour,
+                           &RCarteCentre,
+                           &RPvJoueur,
+                           &RPvEnnemi,
+                           &RTerrainJoueur,
+                           &RTerrainEnnemi,
+                           &RZoneJeu,
+                           &RSeparationBoards,
+                           &RVictoryOrDefeat,
+                           &RCoeurJoueur,
+                           &RCoeurEnnemi,
+                           &RManaJoueur,
+                           &RManaEnnemi);
 
-    //Position vie Ennemi
-    SDL_Rect RpvEnnemi;
-    RpvEnnemi.x=(7*winW/16);
-    RpvEnnemi.y=(18*winH)/60-winH/8;
-    RpvEnnemi.w=(winW/8);
-    RpvEnnemi.h=winH/8;
-
-    //Position terrainJoueur
-    SDL_Rect RterrainJoueur;
-    RterrainJoueur.w=(winW/10);
-    RterrainJoueur.h=(winH/6);
-    RterrainJoueur.x=(winW/60);
-    RterrainJoueur.y=(winH*2/6)+(winH/15);
-
-    //Position terrainEnnemi
-    SDL_Rect RterrainEnnemi;
-    RterrainEnnemi.w=(winW/10);
-    RterrainEnnemi.h=(winH/6);
-    RterrainEnnemi.x=(winW/60);
-    RterrainEnnemi.y=(winH*2/6)-(winH/6)-(winH/15);
-
-    //test
-
-
-    boardEnnemi=NULL;
-    boardJoueur=NULL;
-
-    int j;
-    for (j=0;j<4;j++) {
-      //boardEnnemi=pioche(boardEnnemi,&deckEnnemi);
-      jeuJoueur=pioche(jeuJoueur,&deckJoueur);
-    }
-
-    //Terrain de Jeu
-
-    //Bouton Passer son tour
-    SDL_Texture * bout1 = NULL;
-    SDL_Texture * TtextBout1 = NULL;
-    SDL_Surface * textBout1 = NULL;
-    textBout1=TTF_RenderText_Solid(dejavu,"Passer",coulTextBout);
-    if (!textBout1) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    bout1=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,winW/4,winH/10);
-    if (bout1==NULL) {
-      SDL_Log("Unable to create texture:%s",SDL_GetError());
-      return 1;
-    }
-    TtextBout1=SDL_CreateTextureFromSurface(ren,textBout1);
-    SDL_FreeSurface(textBout1);
-    if (TtextBout1==NULL) {
-      SDL_Log("Unable to create texture from image :%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RBout1;
-    SDL_Rect RtextBout1;
-    RtextBout1.x=(2*winW)/3+winW/60;
-    RtextBout1.y=(winH*43)/60+(winH/100);
-    RtextBout1.w=(winW/4)-(winW/30);
-    RtextBout1.h=winH/10-(winH/40);
-    RBout1.x=0;
-    RBout1.y=0;
-    RBout1.w=winW/4;
-    RBout1.h=winH/10;
-    SDL_SetRenderTarget(ren,bout1);
-    if (SDL_SetRenderDrawColor(ren,120,120,120,255)<0) {
-        printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-        return 1;
-    }
-    SDL_RenderFillRect(ren,&RBout1);
-    RBout1.x=(2*winW)/3;
-    RBout1.y=(winH*43)/60;
+    SDL_Texture *boutonPasserSonTour = createBouton(RBoutonPasserSonTour.w, RBoutonPasserSonTour.h, coulFondBout, coulTextBout, "Passer");
 
     //Mana des joueurs
-    SDL_Texture * TmanaJoueur = NULL;
-    SDL_Texture * TmanaEnnemi = NULL;
+    SDL_Texture *TManaJoueur = NULL;
+    SDL_Texture *TManaEnnemi = NULL;
+
+    refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
+    refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
     //Pv des joueurs
-    SDL_Texture * TpvJoueur = NULL;
-    SDL_Texture * TpvEnnemi = NULL;
+    SDL_Texture *TPvJoueur = NULL;
+    SDL_Texture *TPvEnnemi = NULL;
+
+    refreshPv(&TPvJoueur, pvJoueur);
+    refreshPv(&TPvEnnemi, pvEnnemi);
 
     //Dos des cartes
-    SDL_Texture * Tdos;
-    Tdos=loadPictures("image/cartes/dos.png");
-    if (Tdos==NULL) {
-        SDL_Log("Unable to create texture from image :%s",SDL_GetError());
+    SDL_Texture *TDos;
+    TDos = loadPictures("image/cartes/dos.png");
+    if (!TDos)
+    {
+        SDL_Log("Unable to create texture from image :%s", SDL_GetError());
+        return 1;
+    }
+
+    //Coeur
+    SDL_Texture *TCoeur;
+    TCoeur = loadPictures("image/menu/coeur.png");
+    if (!TCoeur)
+    {
+        SDL_Log("Unable to create texture from image :%s", SDL_GetError());
         return 1;
     }
 
     //Zone d'affichage du jeu
-    SDL_Texture * zoneJeu = NULL;
-
-    zoneJeu=SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,winW,(winH*2)/3);
-    if (zoneJeu==NULL) {
-      SDL_Log("Unable to create texture:%s",SDL_GetError());
-      return 1;
-    }
-    SDL_Rect RzoneJeu;
-    RzoneJeu.x=winW/7-winW/100;
-    RzoneJeu.y=0;
-    RzoneJeu.w=winW;
-    RzoneJeu.h=(winH*2)/3;
-    SDL_SetRenderTarget(ren,zoneJeu);
-    if (SDL_SetRenderDrawColor(ren,255,0,0,255)<0) {
-        printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-        return EXIT_FAILURE;
-    }
-    SDL_RenderFillRect(ren,&RzoneJeu);
-    SDL_RenderFillRect(ren,&RterrainEnnemi);
-    SDL_RenderFillRect(ren,&RterrainJoueur);
-    if (SDL_SetRenderDrawColor(ren,0,0,0,255)<0) {
-        printf("Erreur lors du changement de couleur : %s",SDL_GetError());
-        return EXIT_FAILURE;
-    }
-    int i;
-    for (i=(winH/3)-(winH/120);i<=(winH/3)+(winH/120);i++) {
-        SDL_RenderDrawLine(ren,0,i,winW,i);
-    }
-    SDL_SetRenderTarget(ren,NULL);
-    RzoneJeu.x=0;
-    RzoneJeu.y=winH/6;
+    SDL_Texture *zoneJeu = createBouton(RZoneJeu.w, RZoneJeu.h, coulFondDeck, coulFondDeck, " ");
+    SDL_Texture *separationBoards = createBouton(RSeparationBoards.w,RSeparationBoards.h,coulFondEcran,coulFondEcran," ");
 
     //Victoire et Défaite
-    SDL_Surface * surfacetmp=NULL;
-    SDL_Texture * Tdefaite;
-    SDL_Texture * Tvictoire;
-    surfacetmp=TTF_RenderText_Solid(dejavu,"VICTOIRE",coulTextVictory);
-    if (!surfacetmp) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    Tvictoire=SDL_CreateTextureFromSurface(ren,surfacetmp);
-    SDL_FreeSurface(surfacetmp);
+    SDL_Texture *TDefaite = creerTextureTexte("DEFAITE", coulTextBout, NULL, NULL);
+    SDL_Texture *TVictoire = creerTextureTexte("VICTOIRE", coulTextBout, NULL, NULL);
 
-    surfacetmp=TTF_RenderText_Solid(dejavu,"DEFAITE",coulTextVictory);
-    if (!surfacetmp) {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        exit(2);
-    }
-    Tdefaite=SDL_CreateTextureFromSurface(ren,surfacetmp);
-    SDL_FreeSurface(surfacetmp);
+    int victory = 0;
 
-    SDL_Rect Rvictory;
-    Rvictory.x=(winW/8);
-    Rvictory.y=(winH/3);
-    Rvictory.w=(3*winW)/4;
-    Rvictory.h=(winH/3);
-
-    int victory=0;
     //Boucle d'affichage
     SDL_Point mousePos;
     SDL_Event event;
-    Carte * cartetmp=NULL;
-    Carte * carteAttaquante=NULL;
-    Carte * carteGonfle=NULL;
-    Carte * terraintmp=NULL;
-    Carte * sorttmp=NULL;
+
+    Carte *cartetmp = NULL;
+    Carte *carteAttaquante = NULL;
+    Carte *carteGonfle = NULL;
+    Carte *terraintmp = NULL;
+    Carte *sorttmp = NULL;
 
     //Pour le select
     fd_set readfs;
     int ret;
-    struct timeval * tv;
-    tv=calloc(1,sizeof(*tv));
-    tv->tv_sec=0;
-    tv->tv_usec=0;
-
+    struct timeval *tv;
+    tv = calloc(1, sizeof(*tv));
+    tv->tv_sec = 0;
+    tv->tv_usec = 0;
+    int i,j;
     int idtmp;
     int idtmp2;
     int instruction;
 
+    int swollenBouton = 0;
+
     //Pour les Terrains
-    int effetAttTerrainJoueur=0;
-    int effetPVTerrainJoueur=0;
-    int effetAttTerrainEnnemi=0;
-    int effetPVTerrainEnnemi=0;
-    int effetCoutTerrainJoueur=0;
-    int effetCoutTerrainEnnemi=0;
+    int effetAttTerrainJoueur = 0;
+    int effetPVTerrainJoueur = 0;
+    int effetAttTerrainEnnemi = 0;
+    int effetPVTerrainEnnemi = 0;
+    int effetCoutTerrainJoueur = 0;
+    int effetCoutTerrainEnnemi = 0;
 
+    printf("Initialisation achevé\n");
 
-    while (1) {
-        while(SDL_PollEvent(&event)) {
-            switch(event.type) {
+    while (1)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
 
-                //Pour quitter
-                case SDL_QUIT:
-                    send(sock,"/X",strlen("/X"),0);
-                    libereListeCarte(boardEnnemi);
-                    libereListeCarte(boardJoueur);
-                    libereListeCarte(jeuJoueur);
-                    libereListeCarte(jeuEnnemi);
-                    SDL_DestroyTexture(TmanaJoueur);
-                    SDL_DestroyTexture(TmanaEnnemi);
-                    SDL_DestroyTexture(Tdos);
-                    SDL_DestroyTexture(zoneJeu);
-                    return 1;
-                    break;
-
-                //En cas de clic
-                case SDL_MOUSEBUTTONDOWN:
-                    mousePos.x=event.button.x;
-                    mousePos.y=event.button.y;
-
-                    //Passer son tour
-                    if (tour && SDL_PointInRect(&mousePos,&RBout1)) {
-                        tour=0;
-                        send(sock,"2",strlen("2"),0);
-                        if (manaMaxEnnemi<10) {
-                          manaMaxEnnemi+=1;
-                        }
-                        manaEnnemi=manaMaxEnnemi;
-                        refresh=SDL_TRUE;
-                    }
-
-                    //Mettre en évidence une carte
-                    if (gonfle) {
-                      gonfle=0;
-                    }
-                    else  {
-                        if (event.button.button==SDL_BUTTON_RIGHT) {
-                            carteGonfle = carteClique(&mousePos,jeuJoueur,boardEnnemi,boardJoueur);
-                            if (SDL_PointInRect(&mousePos,&RterrainEnnemi)&& terrainEnnemi!=NULL) {
-                                carteGonfle=terrainEnnemi;
-                            }
-                            if (SDL_PointInRect(&mousePos,&RterrainJoueur)&& terrainJoueur!=NULL) {
-                                carteGonfle=terrainJoueur;
-                            }
-                            if (carteGonfle!=NULL) {
-                                gonfle=1;
-                            }
-
-                        }
-                    }
-
-                    //ATTAQUE
-                    if (tour && carteAttaquante!=NULL && event.button.button==SDL_BUTTON_LEFT) {
-                      if (SDL_PointInRect(&mousePos,&RpvEnnemi)&&((provocationEnnemi==NULL)||(isIn(cartetmp,provocationEnnemi)))) {
-                          printf("%s attaque face ! \n",carteAttaquante->nom);
-                          pvEnnemi-=carteAttaquante->att+effetAttTerrainJoueur;
-                          carteAttaquante->peutAttaquer=SDL_FALSE;
-                          refresh=SDL_TRUE;
-                          carteAttaquante=NULL;
-                          sprintf(buffer,"/5 %d",pvEnnemi);
-                          send(sock,buffer,strlen(buffer),0);
-                      }
-                      else {
-                        cartetmp=carteClique(&mousePos,NULL,boardEnnemi,NULL);
-                        if (cartetmp!=NULL&&((provocationEnnemi==NULL)||(isIn(cartetmp,provocationEnnemi)))) {
-                          printf("%s se fait attaquer par %s\n",cartetmp->nom,carteAttaquante->nom);
-                          cartetmp->pv-=carteAttaquante->att+effetAttTerrainJoueur;
-                          carteAttaquante->pv-=cartetmp->att+effetAttTerrainEnnemi;
-                          carteAttaquante->peutAttaquer=SDL_FALSE;
-                          sprintf(buffer,"/4 %d %d",carteAttaquante->idboard,cartetmp->idboard);
-                          send(sock,buffer,strlen(buffer),0);
-
-                          /*
-                          if (cartetmp->pv<=0) {
-                              if (cartetmp->raleDagonie(cartetmp,ren,&provocationEnnemi) != 1) {
-                                  printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",cartetmp->nom);
-                              }
-                              if (isIn(cartetmp,provocationEnnemi)) {
-                                  provocationEnnemi=retirerCarte(provocationEnnemi,cartetmp);
-                              }
-                              boardEnnemi=retirerCarte(boardEnnemi,cartetmp);
-                          }
-
-                          if (carteAttaquante->pv<=0) {
-                              if (carteAttaquante->raleDagonie(cartetmp,ren,&provocationJoueur) != 1) {
-                                  printf("ERREUR LORS DU RALE D'AGONIE DE %s\n",carteAttaquante->nom);
-                              }
-                              if (isIn(carteAttaquante,provocationJoueur)) {
-                                  provocationJoueur=retirerCarte(provocationJoueur,carteAttaquante);
-                              }
-                              boardJoueur=retirerCarte(boardJoueur,carteAttaquante);
-                          }
-                          */
-                          refresh=SDL_TRUE;
-                          carteAttaquante=NULL;
-                        }
-                        else {
-                            carteAttaquante=NULL;
-                        }
-                      }
-                    }
-                    else {
-                        carteAttaquante=NULL;
-                    }
-
-                    //Faire attaquer un monstre
-                    if (tour && event.button.button==SDL_BUTTON_LEFT) {
-                        cartetmp=carteClique(&mousePos,NULL,NULL,boardJoueur);
-                        if (cartetmp!=NULL && cartetmp->peutAttaquer) {
-                            carteAttaquante=cartetmp;
-                            printf("ATTAQUE DE %s\n",carteAttaquante->nom);
-                        }
-                    }
-
-                    //Choisir le côté du terrain
-                    if (tour && terraintmp!=NULL && event.button.button==SDL_BUTTON_LEFT) {
-                        if (SDL_PointInRect(&mousePos,&RterrainEnnemi)) {
-                          if(terrainEnnemi!=NULL) {
-                              libereCarte(terrainEnnemi);
-                              terrainEnnemi=NULL;
-                          }
-                          terrainEnnemi=terraintmp;
-                          manaJoueur-=terraintmp->cout+effetCoutTerrainJoueur;
-                          jeuJoueur=retirerCarte(jeuJoueur,terraintmp);
-                          terraintmp=NULL;
-                          refresh=SDL_TRUE;
-                          sprintf(buffer,"/6 %d %d",terrainEnnemi->id,0);
-                          send(sock,buffer,strlen(buffer),0);
-                        }
-                        if (SDL_PointInRect(&mousePos,&RterrainJoueur)) {
-                          if (terrainJoueur!=NULL) {
-                              libereCarte(terrainJoueur);
-                              terrainJoueur=NULL;
-                          }
-                          terrainJoueur=terraintmp;
-                          manaJoueur-=terraintmp->cout+effetCoutTerrainJoueur;
-                          jeuJoueur=retirerCarte(jeuJoueur,terraintmp);
-                          terraintmp=NULL;
-                          refresh=SDL_TRUE;
-                          sprintf(buffer,"/6 %d %d",terrainJoueur->id,1);
-                          send(sock,buffer,strlen(buffer),0);
-                        }
-
-                    }
-                    //Choisir la cible d'un sort
-                    if (tour && sorttmp!=NULL && event.button.button==SDL_BUTTON_LEFT) {
-                      cartetmp=carteClique(&mousePos,boardJoueur,boardEnnemi,NULL);
-                      if (cartetmp!=NULL) {
-                        if (sorttmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
-                            printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
-                        }
-                        manaJoueur-=sorttmp->cout+effetCoutTerrainJoueur;
-                        jeuJoueur=retirerCarte(jeuJoueur,sorttmp);
-                        refresh=SDL_TRUE;
-                        sprintf(buffer,"/8 %d %d",sorttmp->id,cartetmp->idboard);
-                        send(sock,buffer,strlen(buffer),0);
-                        sorttmp=NULL;
-                      }
-                      else {
-                        sorttmp=NULL;
-                      }
-                    }
-                    else {
-                      sorttmp=NULL;
-                    }
-
-                    //Jouer un monstre, un terrain ou un sort
-                    if (tour && event.button.button==SDL_BUTTON_LEFT && event.button.clicks==2) {
-                        cartetmp=carteClique(&mousePos,jeuJoueur,NULL,NULL);
-                        if (cartetmp!=NULL && cartetmp->genre==1 && cartetmp->cout + effetCoutTerrainJoueur<= manaJoueur) {
-                            if (estInvocable(cartetmp,boardJoueur)) {
-                                boardJoueur=ajoutTete(boardJoueur,cartetmp);
-                                if (cartetmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
-                                    printf("ERREUR LORS DE L'INVOCATION DE %s\n",cartetmp->nom);
-                                }
-                                manaJoueur-=cartetmp->cout+effetCoutTerrainJoueur;
-                                cartetmp->idboard=idboard;
-                                idboard++;
-                                sprintf(buffer,"/3 %d",cartetmp->id);
-                                send(sock,buffer,strlen(buffer),0);
-                                jeuJoueur=retirerCarte(jeuJoueur,cartetmp);
-                                refresh=SDL_TRUE;
-                            }
-                        }
-                        else if (cartetmp!=NULL && cartetmp->genre==3 && cartetmp->cout + effetCoutTerrainJoueur<= manaJoueur) {
-                            terraintmp=cartetmp;
-                            refresh=SDL_TRUE;
-                        }
-                        else if (cartetmp!=NULL && cartetmp->genre==2 && cartetmp->cout + effetCoutTerrainJoueur<= manaJoueur) {
-                          if (cartetmp->peutAttaquer) {
-                              sorttmp=cartetmp;
-                          }
-                          else {
-                              if (cartetmp->effetDirect(cartetmp,&provocationJoueur,&boardJoueur,&boardEnnemi,NULL,NULL,NULL,&jeuJoueur) != 1) {
-                                  printf("ERREUR LORS DU SORT %s\n",cartetmp->nom);
-                              }
-                              manaJoueur-=cartetmp->cout+effetCoutTerrainJoueur;
-                              refresh=SDL_TRUE;
-                              jeuJoueur=retirerCarte(jeuJoueur,cartetmp);
-                              sorttmp=NULL;
-                              sprintf(buffer,"/7 %d",cartetmp->id);
-                              send(sock,buffer,strlen(buffer),0);
-
-                          }
-                        }
-                    }
-
-                    break;
-
-                case SDL_MOUSEMOTION:
-                    mousePos.x=event.motion.x;
-                    mousePos.y=event.motion.y;
-
-
-                    //Gonflement du Bouton 1
-                    if (SDL_PointInRect(&mousePos,&RBout1)&&tour) {
-                        RBout1.x=(2*winW)/3-(winW/120);
-                        RBout1.y=(winH*43)/60-(winH/200);
-                        RBout1.w=winW/4+(winW/60);
-                        RBout1.h=winH/10+(winH/100);
-                        RtextBout1.x=(2*winW)/3+winW/60-(winW/120);
-                        RtextBout1.w=(winW/4)-(winW/30)+(winW/60);
-                        RtextBout1.h=winH/10-(winH/40)+(winH/100);
-                        RtextBout1.y=(winH*43)/60+(winH/100)-(winH/200);
-                    }
-                    break;
-
-                //Cas général
-                default:
-                    break;
-            }
-
-            //Affichage du menu
-              //Couleur du fond
-            if (SDL_SetRenderDrawColor(ren,0,0,0,255)<0) {
-                printf("Erreur lors du changement de couleur : %s",SDL_GetError());
+            //Pour quitter
+            case SDL_QUIT:
+                send(sock, "/X", strlen("/X"), 0);
+                libereListeCarte(boardEnnemi);
+                libereListeCarte(boardJoueur);
+                libereListeCarte(jeuJoueur);
+                libereListeCarte(jeuEnnemi);
+                libereTextureJeu(boutonPasserSonTour,
+                                 TManaJoueur,
+                                 TManaEnnemi,
+                                 TPvJoueur,
+                                 TPvEnnemi,
+                                 TDos,
+                                 TCoeur,
+                                 zoneJeu,
+                                 separationBoards,
+                                 TDefaite,
+                                 TVictoire);
                 return 1;
+                break;
+
+            //En cas de clic
+            case SDL_MOUSEBUTTONDOWN:
+                mousePos.x = event.button.x;
+                mousePos.y = event.button.y;
+
+                //Passer son tour
+                if (isYourTurn && SDL_PointInRect(&mousePos, &RBoutonPasserSonTour))
+                {
+                    isYourTurn = 0;
+                    send(sock, "2", strlen("2"), 0);
+                    if (manaMaxEnnemi < 10)
+                    {
+                        manaMaxEnnemi += 1;
+                    }
+                    manaEnnemi = manaMaxEnnemi;
+                }
+
+                //Mettre en évidence une carte
+                if (isSwollen)
+                {
+                    isSwollen = 0;
+                }
+                else
+                {
+                    if (event.button.button == SDL_BUTTON_RIGHT)
+                    {
+                        carteGonfle = carteClique(&mousePos, jeuJoueur, boardEnnemi, boardJoueur);
+                        if (SDL_PointInRect(&mousePos, &RTerrainEnnemi) && terrainEnnemi != NULL)
+                        {
+                            carteGonfle = terrainEnnemi;
+                        }
+                        if (SDL_PointInRect(&mousePos, &RTerrainJoueur) && terrainJoueur != NULL)
+                        {
+                            carteGonfle = terrainJoueur;
+                        }
+                        if (carteGonfle != NULL)
+                        {
+                            isSwollen = 1;
+                        }
+                    }
+                }
+
+                //ATTAQUE
+                if (isYourTurn && carteAttaquante != NULL && event.button.button == SDL_BUTTON_LEFT)
+                {
+                    if (SDL_PointInRect(&mousePos, &RPvEnnemi) && (provocationEnnemi == NULL))
+                    {
+                        printf("%s attaque face ! \n", carteAttaquante->nom);
+                        pvEnnemi -= carteAttaquante->att + effetAttTerrainJoueur;
+                        carteAttaquante->peutAttaquer = SDL_FALSE;
+                        carteAttaquante = NULL;
+                        sprintf(buffer, "/5 %d", pvEnnemi);
+                        send(sock, buffer, strlen(buffer), 0);
+                    }
+                    else
+                    {
+                        cartetmp = carteClique(&mousePos, NULL, boardEnnemi, NULL);
+                        if (cartetmp != NULL && ((provocationEnnemi == NULL) || (isIn(cartetmp, provocationEnnemi))))
+                        {
+                            printf("%s se fait attaquer par %s\n", cartetmp->nom, carteAttaquante->nom);
+                            cartetmp->pv -= carteAttaquante->att + effetAttTerrainJoueur;
+                            carteAttaquante->pv -= cartetmp->att + effetAttTerrainEnnemi;
+                            carteAttaquante->peutAttaquer = SDL_FALSE;
+                            sprintf(buffer, "/4 %d %d", carteAttaquante->idboard, cartetmp->idboard);
+                            send(sock, buffer, strlen(buffer), 0);
+                            carteAttaquante = NULL;
+                            cartetmp = NULL;
+                        }
+                        else
+                        {
+                            carteAttaquante = NULL;
+                        }
+                    }
+                }
+                else
+                {
+                    carteAttaquante = NULL;
+                }
+
+                //Faire attaquer un monstre
+                if (isYourTurn && event.button.button == SDL_BUTTON_LEFT)
+                {
+                    cartetmp = carteClique(&mousePos, NULL, NULL, boardJoueur);
+                    if (cartetmp != NULL && cartetmp->peutAttaquer)
+                    {
+                        carteAttaquante = cartetmp;
+                    }
+                }
+
+                //Choisir le côté du terrain
+                if (isYourTurn && terraintmp != NULL && event.button.button == SDL_BUTTON_LEFT)
+                {
+                    if (SDL_PointInRect(&mousePos, &RTerrainEnnemi))
+                    {
+                        if (terrainEnnemi != NULL)
+                        {
+                            libereCarte(terrainEnnemi);
+                        }
+                        terrainEnnemi = terraintmp;
+                        manaJoueur -= terraintmp->cout + effetCoutTerrainJoueur;
+                        jeuJoueur = retirerCarte(jeuJoueur, terraintmp);
+                        sprintf(buffer, "/6 %d %d", terrainEnnemi->id, 0);
+                        send(sock, buffer, strlen(buffer), 0);
+                        terraintmp = NULL;
+                    }
+                    if (SDL_PointInRect(&mousePos, &RTerrainJoueur))
+                    {
+                        if (terrainJoueur != NULL)
+                        {
+                            libereCarte(terrainJoueur);
+                        }
+                        terrainJoueur = terraintmp;
+                        manaJoueur -= terraintmp->cout + effetCoutTerrainJoueur;
+                        jeuJoueur = retirerCarte(jeuJoueur, terraintmp);
+                        sprintf(buffer, "/6 %d %d", terrainJoueur->id, 1);
+                        send(sock, buffer, strlen(buffer), 0);
+                        terraintmp = NULL;
+                    }
+                }
+                //Choisir la cible d'un sort
+                if (isYourTurn && sorttmp != NULL && event.button.button == SDL_BUTTON_LEFT)
+                {
+                    cartetmp = carteClique(&mousePos, boardJoueur, boardEnnemi, NULL);
+                    if (cartetmp != NULL)
+                    {
+                        if (sorttmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur) != 1)
+                        {
+                            printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
+                        }
+                        manaJoueur -= sorttmp->cout + effetCoutTerrainJoueur;
+                        jeuJoueur = retirerCarte(jeuJoueur, sorttmp);
+                        sprintf(buffer, "/8 %d %d", sorttmp->id, cartetmp->idboard);
+                        send(sock, buffer, strlen(buffer), 0);
+                        sorttmp = NULL;
+                    }
+                    else
+                    {
+                        sorttmp = NULL;
+                    }
+                }
+                else
+                {
+                    sorttmp = NULL;
+                }
+
+                //Jouer un monstre, un terrain ou un sort
+                if (isYourTurn && event.button.button == SDL_BUTTON_LEFT && event.button.clicks == 2)
+                {
+                    cartetmp = carteClique(&mousePos, jeuJoueur, NULL, NULL);
+                    if (cartetmp != NULL && cartetmp->genre == 1 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    {
+                        if (estInvocable(cartetmp, boardJoueur))
+                        {
+                            boardJoueur = ajoutTete(boardJoueur, cartetmp);
+                            if (cartetmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur) != 1)
+                            {
+                                printf("ERREUR LORS DE L'INVOCATION DE %s\n", cartetmp->nom);
+                            }
+                            manaJoueur -= cartetmp->cout + effetCoutTerrainJoueur;
+                            cartetmp->idboard = idboard++;
+                            sprintf(buffer, "/3 %d", cartetmp->id);
+                            send(sock, buffer, strlen(buffer), 0);
+                            jeuJoueur = retirerCarte(jeuJoueur, cartetmp);
+                            cartetmp = NULL;
+                        }
+                    }
+                    else if (cartetmp != NULL && cartetmp->genre == 3 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    {
+                        terraintmp = cartetmp;
+                        cartetmp = NULL;
+                    }
+                    else if (cartetmp != NULL && cartetmp->genre == 2 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    {
+                        if (cartetmp->peutAttaquer)
+                        {
+                            sorttmp = cartetmp;
+                            cartetmp = NULL;
+                        }
+                        else
+                        {
+                            if (cartetmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur) != 1)
+                            {
+                                printf("ERREUR LORS DU SORT %s\n", cartetmp->nom);
+                            }
+                            manaJoueur -= cartetmp->cout + effetCoutTerrainJoueur;
+                            jeuJoueur = retirerCarte(jeuJoueur, cartetmp);
+                            sprintf(buffer, "/7 %d", cartetmp->id);
+                            send(sock, buffer, strlen(buffer), 0);
+                            cartetmp = NULL;
+                        }
+                    }
+                }
+
+                boardJoueur = refreshBoard(boardJoueur, &provocationJoueur, terrainJoueur, &effetPVTerrainJoueur, &effetAttTerrainJoueur, &effetCoutTerrainJoueur);
+                boardEnnemi = refreshBoard(boardEnnemi, &provocationEnnemi, terrainEnnemi, &effetPVTerrainEnnemi, &effetAttTerrainEnnemi, &effetCoutTerrainEnnemi);
+
+                refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
+                refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
+                refreshPv(&TPvJoueur, pvJoueur);
+                refreshPv(&TPvEnnemi, pvEnnemi);
+                refreshTextureCompleteCarte(terrainJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                refreshTextureCompleteCarte(terrainEnnemi, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                refreshTexturesCompletesCartes(boardJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                refreshTexturesCompletesCartes(jeuJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                refreshTexturesCompletesCartes(boardEnnemi, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrainEnnemi);
+
+                break;
+
+            case SDL_MOUSEMOTION:
+                mousePos.x = event.motion.x;
+                mousePos.y = event.motion.y;
+
+                if (SDL_PointInRect(&mousePos, &RBoutonPasserSonTour) && isYourTurn)
+                {
+                    if (!swollenBouton)
+                    {
+                        Mix_PlayChannel(-1, hover, 0);
+                        swollenBouton = 1;
+                        swellRect(&RBoutonPasserSonTour);
+                    }
+                    break;
+                }
+                else
+                {
+                    swollenBouton = 0;
+                    refreshTextureSizesJeu(&RBoutonPasserSonTour,
+                           &RCarteCentre,
+                           &RPvJoueur,
+                           &RPvEnnemi,
+                           &RTerrainJoueur,
+                           &RTerrainEnnemi,
+                           &RZoneJeu,
+                           &RSeparationBoards,
+                           &RVictoryOrDefeat,
+                           &RCoeurJoueur,
+                           &RCoeurEnnemi,
+                           &RManaJoueur,
+                           &RManaEnnemi);
+                }
+                break;
+
+            case SDL_WINDOWEVENT:
+                if ((&event)->window.event == SDL_WINDOWEVENT_RESIZED)
+                {
+                    //Rafraichissement des textures en cas de modifications de la taille de la fenêtre
+                    SDL_GetWindowSize(win, &winW, &winH);
+                    refreshTextureSizesJeu(&RBoutonPasserSonTour,
+                           &RCarteCentre,
+                           &RPvJoueur,
+                           &RPvEnnemi,
+                           &RTerrainJoueur,
+                           &RTerrainEnnemi,
+                           &RZoneJeu,
+                           &RSeparationBoards,
+                           &RVictoryOrDefeat,
+                           &RCoeurJoueur,
+                           &RCoeurEnnemi,
+                           &RManaJoueur,
+                           &RManaEnnemi);
+                }
+                break;
+
+            default:
+                break;
             }
-            SDL_RenderClear(ren);
+
+            clearScreen();
             //Fond zone de Jeu
-            SDL_RenderCopy(ren,zoneJeu,NULL,&RzoneJeu);
-            if (refresh) {
-                boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-            }
-            if (pvEnnemi<=0 && victory==0) {
-                tour = 0;
-                victory=2;
-                sprintf(buffer,"/9");
-                send(sock,buffer,strlen(buffer),0);
-            }
-            //bouton1
-            SDL_RenderCopy(ren,bout1,NULL,&RBout1);
-            SDL_RenderCopy(ren,TtextBout1,NULL,&RtextBout1);
+            SDL_RenderCopy(ren, zoneJeu, NULL, &RZoneJeu);
+            SDL_RenderCopy(ren,separationBoards,NULL,&RSeparationBoards);
 
-            afficheJeuJoueur(jeuJoueur,refresh,effetCoutTerrainJoueur);
-            afficheJeuEnnemi(Tdos,jeuEnnemi);
-
-            afficheBoardJoueur(boardJoueur,refresh,effetPVTerrainJoueur,effetAttTerrainJoueur);
-            afficheBoardEnnemi(boardEnnemi,refresh,effetPVTerrainEnnemi,effetAttTerrainEnnemi);
-
-            afficheManaJoueur(&TmanaJoueur,manaJoueur,manaMaxJoueur,refresh);
-            afficheManaEnnemi(&TmanaEnnemi,manaEnnemi,manaMaxEnnemi,refresh);
-
-            affichePvJoueur(&TpvJoueur,pvJoueur,&RpvJoueur,refresh);
-            affichePvEnnemi(&TpvEnnemi,pvEnnemi,&RpvEnnemi,refresh);
-
-            if (terrainJoueur!=NULL) {
-                SDL_RenderCopy(ren,terrainJoueur->TCarteComplete,NULL,&RterrainJoueur);
+            if (pvEnnemi <= 0 && victory == 0)
+            {
+                isYourTurn = 0;
+                victory = 2;
+                sprintf(buffer, "/9");
+                send(sock, buffer, strlen(buffer), 0);
             }
 
-            if (terrainEnnemi!=NULL) {
-                SDL_RenderCopy(ren,terrainEnnemi->TCarteComplete,NULL,&RterrainEnnemi);
+            SDL_RenderCopy(ren, boutonPasserSonTour, NULL, &RBoutonPasserSonTour);
+
+            afficheJeuJoueur(jeuJoueur);
+            afficheJeuEnnemi(TDos, jeuEnnemi);
+
+            afficheBoardJoueur(boardJoueur);
+            afficheBoardEnnemi(boardEnnemi);
+
+            SDL_RenderCopy(ren, TManaJoueur, NULL, &RManaJoueur);
+            SDL_RenderCopy(ren, TManaEnnemi, NULL, &RManaEnnemi);
+
+            SDL_RenderCopy(ren, TCoeur, NULL, &RCoeurEnnemi);
+            SDL_RenderCopy(ren, TCoeur, NULL, &RCoeurJoueur);
+
+            SDL_RenderCopy(ren, TPvJoueur, NULL, &RPvJoueur);
+            SDL_RenderCopy(ren, TPvEnnemi, NULL, &RPvEnnemi);
+
+            if (terrainJoueur != NULL)
+            {
+                SDL_RenderCopy(ren, terrainJoueur->TCarteComplete, NULL, &RTerrainJoueur);
             }
 
-            if (gonfle) {
-                SDL_RenderCopy(ren,carteGonfle->TCarteComplete,NULL,&RCarteCentre);
+            if (terrainEnnemi != NULL)
+            {
+                SDL_RenderCopy(ren, terrainEnnemi->TCarteComplete, NULL, &RTerrainEnnemi);
             }
 
-            if (victory==1) {
-                SDL_RenderCopy(ren,Tdefaite,NULL,&Rvictory);
-            }
-            if (victory==2) {
-                SDL_RenderCopy(ren,Tvictoire,NULL,&Rvictory);
+            if (isSwollen)
+            {
+                SDL_RenderCopy(ren, carteGonfle->TCarteComplete, NULL, &RCarteCentre);
             }
 
+            if (victory == 1)
+            {
+                SDL_RenderCopy(ren, TDefaite, NULL, &RVictoryOrDefeat);
+            }
+            if (victory == 2)
+            {
+                SDL_RenderCopy(ren, TVictoire, NULL, &RVictoryOrDefeat);
+            }
 
             //Rendu
             SDL_RenderPresent(ren);
 
-            if (refresh) {
-                refresh=SDL_FALSE;
-            }
-
-            //Rafraichissement des textures en cas de modifications de taille de la fenêtre
-            SDL_GetWindowSize(win,&winW,&winH);
-            //zoneJeu
-            RzoneJeu.w=winW;
-            RzoneJeu.h=(winH*2)/3;
-            RzoneJeu.x=0;
-            RzoneJeu.y=winH/6;
-            //Carte au centre
-            RCarteCentre.x=winW/3;
-            RCarteCentre.y=winH/4;
-            RCarteCentre.h=winH/2;
-            RCarteCentre.w=winW/3;
-            //Bout1
-            RtextBout1.x=(2*winW)/3+winW/60;
-            RtextBout1.y=(winH*43)/60+(winH/100);
-            RtextBout1.w=(winW/4)-(winW/30);
-            RtextBout1.h=winH/10-(winH/40);
-            RBout1.w=winW/4;
-            RBout1.h=winH/10;
-            RBout1.x=(2*winW)/3;
-            RBout1.y=(winH*43)/60;
-            //Position vie
-            RpvJoueur.x=(7*winW/16);
-            RpvJoueur.y=(42*winH)/60;
-            RpvJoueur.w=(winW/8);
-            RpvJoueur.h=winH/8;
-            RpvEnnemi.x=(7*winW/16);
-            RpvEnnemi.y=(18*winH)/60-winH/8;
-            RpvEnnemi.w=(winW/8);
-            RpvEnnemi.h=winH/8;
-            //Terrains
-            RterrainJoueur.w=(winW/10);
-            RterrainJoueur.h=(winH/6);
-            RterrainJoueur.x=(winW/60);
-            RterrainJoueur.y=(winH/2)+(winH/15);
-            RterrainEnnemi.w=(winW/10);
-            RterrainEnnemi.h=(winH/6);
-            RterrainEnnemi.x=(winW/60);
-            RterrainEnnemi.y=(winH/2)-(winH/6)-(winH/15);
-            //VICTOIRE
-            Rvictory.x=(winW/8);
-            Rvictory.y=(winH/3);
-            Rvictory.w=(3*winW)/4;
-            Rvictory.h=(winH/3);
-
             FD_ZERO(&readfs);
             FD_SET(sock, &readfs);
-            if((ret = select(sock + 1, &readfs, NULL, NULL, tv)) < 0) {
-              printf("Erreur select\n");
+            if ((ret = select(sock + 1, &readfs, NULL, NULL, tv)) < 0)
+            {
+                printf("Erreur select\n");
             }
-            if (FD_ISSET(sock, &readfs)) {
-              if((n = recv(sock, buffer, sizeof buffer-1, 0)) < 0) {
-                printf("Erreur recv\n");
-              }
-              buffer[n] = '\0';
-              i=0;
-              j=0;
-              printf("%s\n",buffer);
-              while(i<n) {
-                  if (buffer[i]=='/') {
-                      buffer[i]='\0';
-                      j=i;
-                      bufftmp=buffer+j+1;
-                      if (!strcmp(bufftmp,"X")) {
-                          printf("DECONNEXION DU JOUEUR ADVERSE\n");
-                          return 0;
-                      }
-                      if (!strcmp(bufftmp,"1")) {
-                          tour=1;
-                          if (len(jeuJoueur)>=8) {
-
-                          }
-                          else {
-                              jeuJoueur=pioche(jeuJoueur,&deckJoueur);
-                          }
-                          if (manaMaxJoueur<10) {
-                            manaMaxJoueur++;
-                          }
-                          boardJoueur=refreshAttaque(boardJoueur);
-                          refresh=SDL_TRUE;
-                          manaJoueur=manaMaxJoueur;
-                      }
-                      if (!strcmp(bufftmp,"2")) {
-                          manaMaxEnnemi++;
-                          refresh=SDL_TRUE;
-                          manaEnnemi=manaMaxEnnemi;
-                      }
-                      if (bufftmp[0]=='3') {
-                          sscanf(bufftmp,"%d %d",&instruction,&idtmp);
-                          cartetmp=idtocard(idtmp);
-                          cartetmp->idboard=idboard;
-                          idboard++;
-                          boardEnnemi=ajoutTete(boardEnnemi,cartetmp);
-                          if (cartetmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
-                              printf("ERREUR LORS DE L'INVOCATION DE %s\n",cartetmp->nom);
-                          }
-                          manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
-                          refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-                      }
-                      if (bufftmp[0]=='4') {
-                          sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
-                          cartetmp=inBoard(idtmp,boardEnnemi);
-                          carteAttaquante=inBoard(idtmp2,boardJoueur);
-                          if (cartetmp==NULL || carteAttaquante==NULL) {
-                              printf("ERREUR ATTAQUE ENNEMI %p %p \n",cartetmp,carteAttaquante);
-                              return 1;
-                          }
-                          cartetmp->pv-=carteAttaquante->att+effetAttTerrainJoueur;
-                          carteAttaquante->pv-=cartetmp->att+effetAttTerrainEnnemi;
-                          carteAttaquante=NULL;
-                          refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-
-                      }
-                      if (bufftmp[0]=='5') {
-                          sscanf(bufftmp,"%d %d",&instruction,&idtmp);
-                          pvJoueur=idtmp;
-                          refresh=SDL_TRUE;
-                      }
-                      if (bufftmp[0]=='6') {
-                          sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
-                          cartetmp=idtocard(idtmp);
-                          if (idtmp2) {
-                            if (terrainEnnemi!=NULL) {
-                                libereCarte(terrainEnnemi);
-                                terrainEnnemi=NULL;
+            if (FD_ISSET(sock, &readfs))
+            {
+                if ((n = recv(sock, buffer, sizeof buffer - 1, 0)) < 0)
+                {
+                    printf("Erreur recv\n");
+                }
+                buffer[n] = '\0';
+                i = 0;
+                j = 0;
+                printf("%s\n", buffer);
+                while (i < n)
+                {
+                    if (buffer[i] == '/')
+                    {
+                        buffer[i] = '\0';
+                        j = i;
+                        bufftmp = buffer + j + 1;
+                        if (!strcmp(bufftmp, "X"))
+                        {
+                            printf("DECONNEXION DU JOUEUR ADVERSE\n");
+                            libereListeCarte(boardEnnemi);
+                            libereListeCarte(boardJoueur);
+                            libereListeCarte(jeuJoueur);
+                            libereListeCarte(jeuEnnemi);
+                            libereTextureJeu(boutonPasserSonTour,
+                                 TManaJoueur,
+                                 TManaEnnemi,
+                                 TPvJoueur,
+                                 TPvEnnemi,
+                                 TDos,
+                                 TCoeur,
+                                 zoneJeu,
+                                 separationBoards,
+                                 TDefaite,
+                                 TVictoire);
+                            return 0;
+                        }
+                        if (!strcmp(bufftmp, "p"))
+                        {
+                            incrementeJeu(&jeuEnnemi);
+                        }
+                        if (!strcmp(bufftmp, "1"))
+                        {
+                            isYourTurn = 1;
+                            if (len(jeuJoueur) >= 8)
+                            {
                             }
-                            terrainEnnemi=cartetmp;
-                          }
-                          else {
-                            if (terrainJoueur!=NULL) {
-                                libereCarte(terrainJoueur);
-                                terrainJoueur=NULL;
+                            else
+                            {
+                                if(!(pioche(&jeuJoueur, &deckJoueur))) {
+                                    send(sock,"/p",strlen("/p"),0);
+                                }
                             }
-                            terrainJoueur=cartetmp;
-                          }
-                          refresh=SDL_TRUE;
-                          manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
-                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-                      }
-                      if (bufftmp[0]=='7') {
-                          sscanf(bufftmp,"%d %d",&instruction,&idtmp);
-                          cartetmp=idtocard(idtmp);
-                          if (cartetmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
-                              printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
-                          }
-                          manaEnnemi-=cartetmp->cout+effetCoutTerrainEnnemi;
-                          refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-                      }
+                            if (manaMaxJoueur < 10)
+                            {
+                                manaMaxJoueur++;
+                            }
+                            boardJoueur = refreshAttaque(boardJoueur);
+                            manaJoueur = manaMaxJoueur;
+                        }
 
-                      if (bufftmp[0]=='8') {
-                          sscanf(bufftmp,"%d %d %d",&instruction,&idtmp,&idtmp2);
-                          sorttmp=idtocard(idtmp);
-                          cartetmp=inBoard(idtmp2,boardJoueur);
-                          if (cartetmp==NULL) {
-                              cartetmp=inBoard(idtmp2,boardEnnemi);
-                          }
-                          if (sorttmp->effetDirect(cartetmp,&provocationEnnemi,&boardEnnemi,&boardJoueur,NULL,NULL,NULL,&jeuEnnemi) != 1) {
-                              printf("ERREUR LORS DU SORT DE %s\n",cartetmp->nom);
-                          }
-                          manaEnnemi-=sorttmp->cout+effetCoutTerrainEnnemi;
-                          refresh=SDL_TRUE;
-                          boardJoueur=refreshBoardJoueur(boardJoueur,&provocationJoueur,terrainJoueur,&effetPVTerrainJoueur,&effetAttTerrainJoueur,&effetCoutTerrainJoueur);
-                          boardEnnemi=refreshBoardEnnemi(boardEnnemi,&provocationEnnemi,terrainEnnemi,&effetPVTerrainEnnemi,&effetAttTerrainEnnemi,&effetCoutTerrainEnnemi);
-                          sorttmp=NULL;
-                      }
+                        if (!strcmp(bufftmp, "2"))
+                        {
+                            manaMaxEnnemi++;
+                            manaEnnemi = manaMaxEnnemi;
+                        }
 
-                      if (bufftmp[0]=='9') {
-                          victory=1;
-                      }
+                        if (bufftmp[0] == '3')
+                        {
+                            sscanf(bufftmp, "%d %d", &instruction, &idtmp);
+                            cartetmp = idtocard(idtmp);
+                            cartetmp->idboard = idboard++;
+                            boardEnnemi = ajoutTete(boardEnnemi, cartetmp);
+                            if (cartetmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi) != 1)
+                            {
+                                printf("ERREUR LORS DE L'INVOCATION DE %s\n", cartetmp->nom);
+                            }
+                            manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
+                            decrementeJeu(&jeuEnnemi);
+                        }
+                        if (bufftmp[0] == '4')
+                        {
+                            sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
+                            cartetmp = inBoard(idtmp, boardEnnemi);
+                            carteAttaquante = inBoard(idtmp2, boardJoueur);
+                            if (cartetmp == NULL || carteAttaquante == NULL)
+                            {
+                                printf("ERREUR ATTAQUE ENNEMI %p %p \n", cartetmp, carteAttaquante);
+                                return 1;
+                            }
+                            cartetmp->pv -= carteAttaquante->att + effetAttTerrainJoueur;
+                            carteAttaquante->pv -= cartetmp->att + effetAttTerrainEnnemi;
+                            carteAttaquante = NULL;
+                        }
+                        if (bufftmp[0] == '5')
+                        {
+                            sscanf(bufftmp, "%d %d", &instruction, &idtmp);
+                            pvJoueur = idtmp;
+                        }
+                        if (bufftmp[0] == '6')
+                        {
+                            sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
+                            cartetmp = idtocard(idtmp);
+                            if (idtmp2)
+                            {
+                                if (terrainEnnemi != NULL)
+                                {
+                                    libereCarte(terrainEnnemi);
+                                }
+                                terrainEnnemi = cartetmp;
+                            }
+                            else
+                            {
+                                if (terrainJoueur != NULL)
+                                {
+                                    libereCarte(terrainJoueur);
+                                }
+                                terrainJoueur = cartetmp;
+                            }
+                            decrementeJeu(&jeuEnnemi);
+                            manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
+                        }
+                        if (bufftmp[0] == '7')
+                        {
+                            sscanf(bufftmp, "%d %d", &instruction, &idtmp);
+                            cartetmp = idtocard(idtmp);
+                            if (cartetmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi) != 1)
+                            {
+                                printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
+                            }
+                            decrementeJeu(&jeuEnnemi);
+                            manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
+                        }
 
-                      buffer[i]='\0';
-                      i++;
-                  }
-                  else {
-                      i++;
-                  }
-              }
+                        if (bufftmp[0] == '8')
+                        {
+                            sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
+                            sorttmp = idtocard(idtmp);
+                            cartetmp = inBoard(idtmp2, boardJoueur);
+                            if (cartetmp == NULL)
+                            {
+                                cartetmp = inBoard(idtmp2, boardEnnemi);
+                            }
+                            if (sorttmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi) != 1)
+                            {
+                                printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
+                            }
+                            decrementeJeu(&jeuEnnemi);
+                            manaEnnemi -= sorttmp->cout + effetCoutTerrainEnnemi;
+                            sorttmp = NULL;
+                        }
+
+                        if (bufftmp[0] == '9')
+                        {
+                            victory = 1;
+                        }
+
+                        boardJoueur = refreshBoard(boardJoueur, &provocationJoueur, terrainJoueur, &effetPVTerrainJoueur, &effetAttTerrainJoueur, &effetCoutTerrainJoueur);
+                        boardEnnemi = refreshBoard(boardEnnemi, &provocationEnnemi, terrainEnnemi, &effetPVTerrainEnnemi, &effetAttTerrainEnnemi, &effetCoutTerrainEnnemi);
+
+                        refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
+                        refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
+                        refreshPv(&TPvJoueur, pvJoueur);
+                        refreshPv(&TPvEnnemi, pvEnnemi);
+                        refreshTextureCompleteCarte(terrainJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                        refreshTextureCompleteCarte(terrainEnnemi, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                        refreshTexturesCompletesCartes(boardJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                        refreshTexturesCompletesCartes(jeuJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
+                        refreshTexturesCompletesCartes(boardEnnemi, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrainEnnemi);
+
+                        buffer[i] = '\0';
+                        i++;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
             }
-
         }
     }
 }

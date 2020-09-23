@@ -53,8 +53,8 @@ Deck loadDeck(char *nomFichier)
     {
         return deck;
     }
-    deck.nom = strdup(fgets(deckName,16,f));
-    deck.nom[strlen(deck.nom)-1]='\0';
+    deck.nom = strdup(fgets(deckName, 16, f));
+    deck.nom[strlen(deck.nom) - 1] = '\0';
     while ((fscanf(f, "%d", &tmp) == 1) && (tmp != 0))
     {
         deck.deckList = ajoutTete(deck.deckList, idtocard(tmp));
@@ -64,12 +64,10 @@ Deck loadDeck(char *nomFichier)
     {
         return deck;
     }
-
-    afficherCarteDansLCarte(deck.deckList);
     return deck;
 }
 
-int sauvDeck(char * nomFichier, Deck deck)
+int sauvDeck(char *nomFichier, Deck deck)
 {
     FILE *f;
     LCarte deckList = deck.deckList;
@@ -78,8 +76,8 @@ int sauvDeck(char * nomFichier, Deck deck)
     {
         return 1;
     }
-    fprintf(f,deck.nom);
-    fprintf(f,"\n");
+    fprintf(f, deck.nom);
+    fprintf(f, "\n");
     while (deckList != NULL)
     {
         fprintf(f, "%d ", deckList->carte->id);
@@ -140,15 +138,41 @@ SDL_Rect *copieRect(SDL_Rect *r)
     return nr;
 }
 
+SDL_Texture *creerTextureTexte(char *text, SDL_Color *color, int *w, int *h)
+{
+    SDL_Texture *TtextBout = NULL;
+    SDL_Surface *textBout = NULL;
+    textBout = TTF_RenderUTF8_Blended(dejavu, text, *color);
+    if (!textBout)
+    {
+        printf("TTF_RenderUTF8_Blended: %s\n", TTF_GetError());
+        exit(2);
+    }
+    TtextBout = SDL_CreateTextureFromSurface(ren, textBout);
+    SDL_FreeSurface(textBout);
+    if (TtextBout == NULL)
+    {
+        SDL_Log("Unable to create texture from image :%s", SDL_GetError());
+        return NULL;
+    }
+    if (w && h)
+    {
+        SDL_QueryTexture(TtextBout, NULL, NULL, w, h);
+    }
+    return TtextBout;
+}
+
 SDL_Texture *createBouton(int width, int height, SDL_Color *coulFond, SDL_Color *coulText, char *text)
 {
     SDL_Texture *bout1 = NULL;
     SDL_Texture *TtextBout1 = NULL;
     SDL_Surface *textBout1 = NULL;
-    if (text) {
+    if (text)
+    {
         textBout1 = TTF_RenderUTF8_Blended(dejavu, text, *coulText);
     }
-    else {
+    else
+    {
         textBout1 = TTF_RenderUTF8_Blended(dejavu, " ", *coulText);
     }
     if (!textBout1)
@@ -225,7 +249,7 @@ SDL_Texture *refreshTextTexture(SDL_Texture *textTexture, char *text, SDL_Rect *
 
 void refreshTextureSizesIpPrompt(SDL_Rect *RInstructions, SDL_Rect *RZoneTexte, SDL_Rect *RText, SDL_Rect *RZonePrompt)
 {
-    *RInstructions = initRect(winW / 2 - winW / 6, winH / 2 - winH / 3 + winH / 50, winW / 3, winH / 6);
+    *RInstructions = initRect(winW / 2 - winW / 4, winH / 2 - winH / 3 + winH / 50, winW / 2, winH / 6);
     *RZoneTexte = initRect(winW / 2 - winW / 3 + winW / 50, winH / 2 + winH / 12, (2 * winW) / 3 - winW / 25, winH / 12);
     *RText = initRect(winW / 2 - winW / 3 + winW / 50 + winW / 100, winH / 2 + winH / 12 + winH / 100, 0, 0);
     *RZonePrompt = initRect(winW / 2 - winW / 3, winH / 2 - winH / 3, (2 * winW) / 3, (2 * winH) / 3);
