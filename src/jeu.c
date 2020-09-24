@@ -774,8 +774,8 @@ int jeu(int sock, LCarte deckChoisi)
                             return 1;
                         }
                         carteAttaquante->peutAttaquer = SDL_FALSE;
-                        cartetmp->pv -= carteAttaquante->att + effetAttTerrainJoueur;
-                        carteAttaquante->pv -= cartetmp->att + effetAttTerrainEnnemi;
+                        cartetmp->pv -= carteAttaquante->att + effetAttTerrainEnnemi;
+                        carteAttaquante->pv -= cartetmp->att + effetAttTerrainJoueur;
                         carteAttaquante = NULL;
                     }
                     if (bufftmp[0] == '5')
