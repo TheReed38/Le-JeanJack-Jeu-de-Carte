@@ -19,8 +19,8 @@ typedef struct _carte {
     int coutMax;
     int cout;
     SDL_bool peutAttaquer; //peutAttaquer sert aussi pour les sorts (il dit si le sort requiert de désigner quelqu'un)
-    int (*effetDirect) (struct _carte *,void *,void *,void*,int*,int*,int*,void*);
-    int (*raleDagonie) (struct _carte *,void *,void *,void *);
+    int (*effetDirect) (struct _carte *,void *,void *,void*,int*,int*,int*,void*,int*);
+    int (*raleDagonie) (struct _carte *,void *,void *,void *,int*);
 } Carte;
 
 typedef struct maillon {
@@ -53,6 +53,8 @@ void libereCarte(Carte * c);
 void incrementeJeu(LCarte * l);
 void decrementeJeu(LCarte * l);
 
+void checkStartTurn(LCarte * boardJoueur, LCarte jeuJoueur, LCarte * boardEnnemi, LCarte jeuEnnemi, int * idboard, int sock);
+
 
 
 Carte * creerJJ();
@@ -71,14 +73,22 @@ Carte * creerTheReed();
 Carte * creerJeanLassalle();
 Carte * creerRexyz();
 Carte * creerPhiid();
+Carte * creerAisharo();
+Carte * creerNellise();
 Carte * creerLipton();
 Carte * creerJack();
 Carte * creerJeanMi();
 Carte * creerCthulhu();
 Carte * creerKim();
+Carte * creerDarkPlaegueis();
+Carte * creerArthur();
 Carte * creerShrek();
+Carte * creerSmashMouth();
+Carte * creerLeCouple();
+Carte * creerGuerrierHoc();
 
 Carte * creerLesPetitesBites();
+Carte * creerPourLaTeam();
 Carte * creerSel();
 Carte * creerAllStar();
 Carte * creerFesses();
@@ -94,7 +104,7 @@ SDL_bool estInvocable(Carte * c, LCarte board);
 SDL_bool isFull(LCarte board);
 
 LCarte refreshAttaque(LCarte l);
-LCarte refreshBoard(LCarte boardJoueur,LCarte * provocation,Carte * terrain,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain);
+LCarte refreshBoard(LCarte boardJoueur,LCarte * provocation,Carte * terrain,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain,int * idboard);
 Carte * carteClique(SDL_Point * mousePos,LCarte jeuJoueur,LCarte boardEnnemi,LCarte boardJoueur);
 
 int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout);

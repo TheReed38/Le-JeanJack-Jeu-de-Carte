@@ -23,6 +23,7 @@ SDL_Color *coulTextBout;
 SDL_Color *coulFondBout;
 SDL_Color *coulFondDeck;
 SDL_Color *coulFondEcran;
+SDL_Color *coulShadow;
 
 void refreshTextureSizesMain(SDL_Rect *RLogo, SDL_Rect *RBoutonJouer, SDL_Rect *RBoutonDecks, SDL_Rect *RBoutonOptions)
 {
@@ -57,6 +58,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevIns, LPSTR lpszArgument, 
     coulFondBout = initColor(120, 120, 120, 255);
     coulFondDeck = initColor(255, 0, 0, 255);
     coulFondEcran = initColor(0, 0, 0, 255);
+    coulShadow = initColor(255,255,255,50);
 
     //Initialisations
     SDL_SetMainReady();
@@ -253,16 +255,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevIns, LPSTR lpszArgument, 
             default:
                 break;
             }
-            //Affichage du menu
-            clearScreen();
-            SDL_RenderCopy(ren, logo, NULL, &RLogo);
-            SDL_RenderCopy(ren, boutonJouer, NULL, &RBoutonJouer);
-            SDL_RenderCopy(ren, boutonDecks, NULL, &RBoutonDecks);
-            SDL_RenderCopy(ren, boutonOptions, NULL, &RBoutonOptions);
-
-            //Rendu
-            SDL_RenderPresent(ren);
         }
+        //Affichage du menu
+        clearScreen();
+        SDL_RenderCopy(ren, logo, NULL, &RLogo);
+        SDL_RenderCopy(ren, boutonJouer, NULL, &RBoutonJouer);
+        SDL_RenderCopy(ren, boutonDecks, NULL, &RBoutonDecks);
+        SDL_RenderCopy(ren, boutonOptions, NULL, &RBoutonOptions);
+
+        //Rendu
+        SDL_RenderPresent(ren);
     }
 
     //Destruction des structures utilisees

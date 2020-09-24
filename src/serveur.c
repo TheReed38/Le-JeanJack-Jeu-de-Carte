@@ -3,13 +3,14 @@ Code de communication serveur client
 0:Début de la partie
 1:Indication de début de tour
 2:Indication de fin de tour
-3:Invocation d'une créature, paramètre : idCarteInvoqué;
+3:Invocation d'une créature, paramètre : idCarteInvoqué et 0 pour mon board et 1 pour le board adverse;
 4:Attaque d'une créature sur une autre créature, paramètres : idAttaquant et idAttaqué
 5:Attaque face, paramètre : pvEnnemi
 6:Terrain Joué, paramètres : idTerrain, côtéTerrain (1 pour Ennemi, 0 pour soi);
 7:Sort Généraux, paramètre : idSort
 8:Sort ciblé, paramètres : idSort, idAttaqué;
 9:Fin de partie Victoire !
+10:Update des stats d'une carte
 */
 
 #include <stdio.h>
@@ -24,6 +25,8 @@ Code de communication serveur client
 // On inclut les fichiers standards
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     WSADATA WSAData;
     WSAStartup(MAKEWORD(2,2), &WSAData);
 
@@ -63,10 +66,10 @@ int main(int argc, char *argv[])
     }
 
     socketJ1=accept(socketServeur,(SOCKADDR*)&adressSocketJ1,&adrSockJ1Size);
-    printf("Le joueur 1 s'est connecté avec succès avec la socket %d de %s:%d\n", socketJ1, inet_ntoa(adressSocketJ1.sin_addr), htons(adressSocketJ1.sin_port));
+    printf("Le joueur 1 s'est connecté avec succès avec la socket %d de %s:%d\n", ((int)(socketJ1)), inet_ntoa(adressSocketJ1.sin_addr), htons(adressSocketJ1.sin_port));
 
     socketJ2=accept(socketServeur,(SOCKADDR*)&adressSocketJ2,&adrSockJ2Size);
-    printf("Le joueur 2 s'est connecté avec succès avec la socket %d de %s:%d\n", socketJ2, inet_ntoa(adressSocketJ2.sin_addr), htons(adressSocketJ2.sin_port));
+    printf("Le joueur 2 s'est connecté avec succès avec la socket %d de %s:%d\n", ((int)socketJ2), inet_ntoa(adressSocketJ2.sin_addr), htons(adressSocketJ2.sin_port));
 
 
 

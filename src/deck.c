@@ -556,51 +556,50 @@ int deck()
       default:
         break;
       }
-
-      //Affichage du menu
-      clearScreen();
-
-      if (deckIsBeingCreated)
-      {
-        SDL_RenderCopy(ren, zoneDeckCree, NULL, &RZoneDeckCree);
-        afficheToutesLesCartes(toutesLesCartes, page);
-        afficheDeck(nouveauDeck.deckList);
-        SDL_RenderCopy(ren, boutonSauvegarderDeck, NULL, &RBoutonSauvegarderDeck);
-        if (page < (((len(toutesLesCartes) - 1) / 3) + 1))
-        {
-          SDL_RenderCopy(ren, boutonSuivant, NULL, &RBoutonSuivant);
-        }
-        if (page > 0)
-        {
-          SDL_RenderCopy(ren, boutonPrecedent, NULL, &RBoutonPrecedent);
-        }
-      }
-      else
-      {
-        SDL_RenderCopy(ren, zoneDecks, NULL, &RZoneDecks);
-
-        if (noDeck >= 1)
-        {
-          SDL_RenderCopy(ren, boutonSupprimerDeck, NULL, &RBoutonSupprimerDeck);
-          SDL_RenderCopy(ren, boutonDeck1, NULL, &RBoutonDeck1);
-        }
-        if (noDeck >= 2)
-        {
-          SDL_RenderCopy(ren, boutonDeck2, NULL, &RBoutonDeck2);
-        }
-        if (noDeck >= 3)
-        {
-          SDL_RenderCopy(ren, boutonDeck3, NULL, &RBoutonDeck3);
-        }
-        if (noDeck < 3)
-        {
-          SDL_RenderCopy(ren, boutonCreerDeck, NULL, &RBoutonCreerDeck);
-        }
-
-        SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
-      }
-
-      SDL_RenderPresent(ren);
     }
+    //Affichage du menu
+    clearScreen();
+
+    if (deckIsBeingCreated)
+    {
+      SDL_RenderCopy(ren, zoneDeckCree, NULL, &RZoneDeckCree);
+      afficheToutesLesCartes(toutesLesCartes, page);
+      afficheDeck(nouveauDeck.deckList);
+      SDL_RenderCopy(ren, boutonSauvegarderDeck, NULL, &RBoutonSauvegarderDeck);
+      if (page < (((len(toutesLesCartes) - 1) / 3) + 1))
+      {
+        SDL_RenderCopy(ren, boutonSuivant, NULL, &RBoutonSuivant);
+      }
+      if (page > 0)
+      {
+        SDL_RenderCopy(ren, boutonPrecedent, NULL, &RBoutonPrecedent);
+      }
+    }
+    else
+    {
+      SDL_RenderCopy(ren, zoneDecks, NULL, &RZoneDecks);
+
+      if (noDeck >= 1)
+      {
+        SDL_RenderCopy(ren, boutonSupprimerDeck, NULL, &RBoutonSupprimerDeck);
+        SDL_RenderCopy(ren, boutonDeck1, NULL, &RBoutonDeck1);
+      }
+      if (noDeck >= 2)
+      {
+        SDL_RenderCopy(ren, boutonDeck2, NULL, &RBoutonDeck2);
+      }
+      if (noDeck >= 3)
+      {
+        SDL_RenderCopy(ren, boutonDeck3, NULL, &RBoutonDeck3);
+      }
+      if (noDeck < 3)
+      {
+        SDL_RenderCopy(ren, boutonCreerDeck, NULL, &RBoutonCreerDeck);
+      }
+
+      SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
+    }
+
+    SDL_RenderPresent(ren);
   }
 }

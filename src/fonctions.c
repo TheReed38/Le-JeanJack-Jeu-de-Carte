@@ -337,13 +337,13 @@ int playerPrompt(char *instructions, char **ipAddress)
             default:
                 break;
             }
-            //Affichage du menu
-            clearScreen();
-            SDL_RenderCopy(ren, zonePrompt, NULL, &RZonePrompt);
-            SDL_RenderCopy(ren, instructionsTexture, NULL, &RInstructions);
-            SDL_RenderCopy(ren, zoneTexte, NULL, &RZoneTexte);
-            SDL_RenderCopy(ren, textTexture, NULL, &RText);
-            SDL_RenderPresent(ren);
         }
+        //Affichage du menu
+        clearScreen();
+        SDL_RenderCopy(ren, zonePrompt, NULL, &RZonePrompt);
+        SDL_RenderCopy(ren, instructionsTexture, NULL, &RInstructions);
+        SDL_RenderCopy(ren, zoneTexte, NULL, &RZoneTexte);
+        SDL_RenderCopy(ren, textTexture, NULL, &RText);
+        SDL_RenderPresent(ren);
     }
 }

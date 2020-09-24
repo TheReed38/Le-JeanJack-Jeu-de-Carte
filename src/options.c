@@ -20,7 +20,7 @@ extern SDL_Color *coulFondDeck;
 extern SDL_Color *coulFondEcran;
 extern int isOnFullscreen;
 
-void libereTextureOptions(SDL_Texture *zoneOptions, SDL_Texture *boutonFullscreen, SDL_Texture * boutonFenetre, SDL_Texture *boutonRetour)
+void libereTextureOptions(SDL_Texture *zoneOptions, SDL_Texture *boutonFullscreen, SDL_Texture *boutonFenetre, SDL_Texture *boutonRetour)
 {
     SDL_DestroyTexture(zoneOptions);
     SDL_DestroyTexture(boutonFullscreen);
@@ -69,7 +69,7 @@ int options()
 
             //Pour quitter
             case SDL_QUIT:
-                libereTextureOptions(zoneOptions, boutonFullscreen,boutonFenetre, boutonRetour);
+                libereTextureOptions(zoneOptions, boutonFullscreen, boutonFenetre, boutonRetour);
                 return 1;
                 break;
 
@@ -81,7 +81,7 @@ int options()
                 if (SDL_PointInRect(&mousePos, &RBoutonRetour))
                 {
                     Mix_PlayChannel(-1, selectSE, 0);
-                    libereTextureOptions(zoneOptions, boutonFullscreen,boutonFenetre, boutonRetour);
+                    libereTextureOptions(zoneOptions, boutonFullscreen, boutonFenetre, boutonRetour);
                     return 0;
                 }
 
@@ -166,19 +166,20 @@ int options()
             default:
                 break;
             }
-
-            clearScreen();
-
-            SDL_RenderCopy(ren, zoneOptions, NULL, &RZoneOptions);
-            SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
-            
-            if (!isOnFullscreen) {
-                SDL_RenderCopy(ren, boutonFullscreen, NULL, &RBoutonFullscreen);
-            }
-            else {
-                SDL_RenderCopy(ren, boutonFenetre , NULL, &RBoutonFenetre);
-            }
-            SDL_RenderPresent(ren);
         }
+        clearScreen();
+
+        SDL_RenderCopy(ren, zoneOptions, NULL, &RZoneOptions);
+        SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
+
+        if (!isOnFullscreen)
+        {
+            SDL_RenderCopy(ren, boutonFullscreen, NULL, &RBoutonFullscreen);
+        }
+        else
+        {
+            SDL_RenderCopy(ren, boutonFenetre, NULL, &RBoutonFenetre);
+        }
+        SDL_RenderPresent(ren);
     }
 }

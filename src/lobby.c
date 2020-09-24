@@ -65,8 +65,8 @@ int lobby()
   SOCKET sock;
   SOCKADDR_IN sin;
 
-   int noDeck;
-  Deck deck1,deck2,deck3;
+  int noDeck;
+  Deck deck1, deck2, deck3;
   deck1 = loadDeck("deck1");
   deck2 = loadDeck("deck2");
   deck3 = loadDeck("deck3");
@@ -110,8 +110,6 @@ int lobby()
   tv->tv_sec = 0;
   tv->tv_usec = 0;
   char *ipAddress;
-
- 
 
   //Boucle d'affichage
   SDL_Point mousePos;
@@ -261,81 +259,81 @@ int lobby()
       default:
         break;
       }
+    }
 
-      //Affichage du menu
-      clearScreen();
+    //Affichage du menu
+    clearScreen();
 
-      if (!deckIsChosen)
+    if (!deckIsChosen)
+    {
+      SDL_RenderCopy(ren, zoneDecks, NULL, &RZoneDecks);
+
+      if (noDeck >= 1)
       {
-        SDL_RenderCopy(ren, zoneDecks, NULL, &RZoneDecks);
-
-        if (noDeck >= 1)
-        {
-          SDL_RenderCopy(ren, boutonDeck1, NULL, &RBoutonDeck1);
-        }
-        if (noDeck >= 2)
-        {
-          SDL_RenderCopy(ren, boutonDeck2, NULL, &RBoutonDeck2);
-        }
-        if (noDeck >= 3)
-        {
-          SDL_RenderCopy(ren, boutonDeck3, NULL, &RBoutonDeck3);
-        }
+        SDL_RenderCopy(ren, boutonDeck1, NULL, &RBoutonDeck1);
+      }
+      if (noDeck >= 2)
+      {
+        SDL_RenderCopy(ren, boutonDeck2, NULL, &RBoutonDeck2);
+      }
+      if (noDeck >= 3)
+      {
+        SDL_RenderCopy(ren, boutonDeck3, NULL, &RBoutonDeck3);
+      }
+    }
+    else
+    {
+      if (!playerIsConnected)
+      {
+        SDL_RenderCopy(ren, boutonTrouverUnServeur, NULL, &RBoutonTrouverUnServeur);
       }
       else
       {
-        if (!playerIsConnected)
-        {
-          SDL_RenderCopy(ren, boutonTrouverUnServeur, NULL, &RBoutonTrouverUnServeur);
-        }
-        else
-        {
-          SDL_RenderCopy(ren, texteAttente, NULL, &RTexteAttente);
-        }
+        SDL_RenderCopy(ren, texteAttente, NULL, &RTexteAttente);
       }
+    }
 
-      //Bouton Retour
-      SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
+    //Bouton Retour
+    SDL_RenderCopy(ren, boutonRetour, NULL, &RBoutonRetour);
 
-      //Rendu
-      SDL_RenderPresent(ren);
+    //Rendu
+    SDL_RenderPresent(ren);
 
-      //Select
-      if (playerIsConnected)
+    //Select
+    if (playerIsConnected)
+    {
+      FD_ZERO(&readfs);
+      FD_SET(sock, &readfs);
+      if ((ret = select(sock + 1, &readfs, NULL, NULL, tv)) < 0)
       {
-        FD_ZERO(&readfs);
-        FD_SET(sock, &readfs);
-        if ((ret = select(sock + 1, &readfs, NULL, NULL, tv)) < 0)
+        printf("Erreur select\n");
+      }
+      if (FD_ISSET(sock, &readfs))
+      {
+        if ((n = recv(sock, buffer, sizeof buffer - 1, 0)) < 0)
         {
-          printf("Erreur select\n");
+          printf("Erreur recv\n");
         }
-        if (FD_ISSET(sock, &readfs))
-        {
-          if ((n = recv(sock, buffer, sizeof buffer - 1, 0)) < 0)
-          {
-            printf("Erreur recv\n");
-          }
 
-          buffer[n] = '\0';
-          if (!strcmp("0", buffer))
+        buffer[n] = '\0';
+        if (!strcmp("0", buffer))
+        {
+          printf("\nLe jeu peut commencer\n");
+          send(sock, "0 ", strlen("0"), 0);
+          if (Mix_PlayMusic(playTheme, -1) == -1)
           {
-            printf("\nLe jeu peut commencer\n");
-            send(sock, "0 ", strlen("0"), 0);
-            if (Mix_PlayMusic(playTheme, -1) == -1)
-            {
-              return 1;
-            }
-            quitValue = jeu(sock, deckChoisi);
-            refreshTextureSizesLobby(&RBoutonTrouverUnServeur, &RBoutonRetour, &RZoneDecks, &RBoutonDeck1, &RBoutonDeck2, &RBoutonDeck3, &RTexteAttente);
-            playerIsConnected = 0;
-            if (quitValue == 1)
-            {
-              SDL_Event sdlevent;
-              sdlevent.type = SDL_QUIT;
-              SDL_PushEvent(&sdlevent);
-            }
-            closesocket(sock);
+            return 1;
           }
+          quitValue = jeu(sock, deckChoisi);
+          refreshTextureSizesLobby(&RBoutonTrouverUnServeur, &RBoutonRetour, &RZoneDecks, &RBoutonDeck1, &RBoutonDeck2, &RBoutonDeck3, &RTexteAttente);
+          playerIsConnected = 0;
+          if (quitValue == 1)
+          {
+            SDL_Event sdlevent;
+            sdlevent.type = SDL_QUIT;
+            SDL_PushEvent(&sdlevent);
+          }
+          closesocket(sock);
         }
       }
     }
