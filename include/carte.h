@@ -2,6 +2,13 @@
 #define _onmappellelovni_
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_ttf.h"
+struct _playerInfo;
+
+typedef struct _gameStatus {
+  struct _playerInfo * joueur;
+  struct _playerInfo * ennemi;
+  int * idboard;
+} * GameStatus;
 
 typedef struct _carte {
     int id;
@@ -19,8 +26,8 @@ typedef struct _carte {
     int coutMax;
     int cout;
     SDL_bool peutAttaquer; //peutAttaquer sert aussi pour les sorts (il dit si le sort requiert de désigner quelqu'un)
-    int (*effetDirect) (struct _carte *,void *,void *,void*,int*,int*,int*,void*,int*);
-    int (*raleDagonie) (struct _carte *,void *,void *,void *,int*);
+    void (*effetDirect) (struct _carte *, GameStatus);
+    void (*raleDagonie) (struct _carte *, GameStatus);
 } Carte;
 
 typedef struct maillon {
@@ -33,6 +40,20 @@ typedef struct _deck {
   LCarte deckList;
   char * nom;
 } Deck;
+
+typedef struct _playerInfo {
+  int pv;
+  int mana;
+  int manaMax;
+  int effetPvTerrain;
+  int effetCoutTerrain;
+  int effetAttTerrain;
+  LCarte jeu;
+  LCarte deck;
+  LCarte board;
+  LCarte provocation;
+  Carte * terrain;
+} * PlayerInfo;
 
 
 
@@ -52,6 +73,8 @@ void libereListeCarte(LCarte l);
 void libereCarte(Carte * c);
 void incrementeJeu(LCarte * l);
 void decrementeJeu(LCarte * l);
+
+void sendMyDeck(int sock, GameStatus g);
 
 void checkStartTurn(LCarte * boardJoueur, LCarte jeuJoueur, LCarte * boardEnnemi, LCarte jeuEnnemi, int * idboard, int sock);
 
@@ -82,16 +105,36 @@ Carte * creerCthulhu();
 Carte * creerKim();
 Carte * creerDarkPlaegueis();
 Carte * creerArthur();
+Carte * creerBoromir();
+Carte * creerSuperBranleur();
+Carte * creerAlainSoral();
+Carte * creerHitler();
+Carte * creerKaiba();
+Carte * creerStaline();
+Carte * creerLaFougere();
+Carte * creerKaaris();
+Carte * creerYondu();
 Carte * creerShrek();
+Carte * creerBlocMinecraft();
 Carte * creerSmashMouth();
+Carte * creerCamera();
 Carte * creerLeCouple();
 Carte * creerGuerrierHoc();
 
 Carte * creerLesPetitesBites();
 Carte * creerPourLaTeam();
 Carte * creerSel();
+Carte * creerBlagueDeMerde();
 Carte * creerAllStar();
 Carte * creerFesses();
+Carte * creerJeRe();
+Carte * creerSerge();
+Carte * creerSpecialDixAbos();
+Carte * creerBellecour();
+Carte * creerMadaMana();
+Carte * creerPUBG();
+
+
 Carte * creerMemphis();
 Carte * creerJapan();
 Carte * creerAppartJJ();
@@ -104,7 +147,7 @@ SDL_bool estInvocable(Carte * c, LCarte board);
 SDL_bool isFull(LCarte board);
 
 LCarte refreshAttaque(LCarte l);
-LCarte refreshBoard(LCarte boardJoueur,LCarte * provocation,Carte * terrain,int *effetPVTerrain,int *effetAttTerrain,int *effetCoutTerrain,int * idboard);
+void refreshBoard(GameStatus g);
 Carte * carteClique(SDL_Point * mousePos,LCarte jeuJoueur,LCarte boardEnnemi,LCarte boardJoueur);
 
 int creerTextureCompleteCarte(Carte *c, int modifPv, int modifAtt, int modifCout);

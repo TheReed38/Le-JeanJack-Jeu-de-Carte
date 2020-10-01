@@ -65,7 +65,8 @@ void libereTextureJeu(SDL_Texture *boutonPasserSonTour,
                       SDL_Texture *zoneJeu,
                       SDL_Texture *separationBoards,
                       SDL_Texture *TDefaite,
-                      SDL_Texture *TVictoire)
+                      SDL_Texture *TVictoire,
+                      SDL_Texture *fondTerrain)
 {
     SDL_DestroyTexture(boutonPasserSonTour);
     SDL_DestroyTexture(TManaJoueur);
@@ -78,6 +79,7 @@ void libereTextureJeu(SDL_Texture *boutonPasserSonTour,
     SDL_DestroyTexture(separationBoards);
     SDL_DestroyTexture(TDefaite);
     SDL_DestroyTexture(TVictoire);
+    SDL_DestroyTexture(fondTerrain);
 }
 
 void afficheJeuJoueur(LCarte jeuJoueur)
@@ -181,30 +183,39 @@ int jeu(int sock, LCarte deckChoisi)
     char *bufftmp;
     int n;
 
-    int pvJoueur = 30;
-    int pvEnnemi = 30;
+    GameStatus g;
+    GameStatus reversedg;
+    g = calloc(1, sizeof(*g));
+    g->joueur = calloc(1, sizeof(*(g->joueur)));
+    g->ennemi = calloc(1, sizeof(*(g->ennemi)));
+    g->idboard = calloc(1, sizeof(*(g->idboard)));
+    reversedg = calloc(1, sizeof(*reversedg));
 
-    int manaJoueur = 0;
-    int manaMaxJoueur = 0;
-    int manaEnnemi = 0;
-    int manaMaxEnnemi = 0;
+    reversedg->joueur = g->ennemi;
+    reversedg->ennemi = g->joueur;
+    reversedg->idboard = g->idboard;
 
-    LCarte deckJoueur = deckChoisi;
+    g->joueur->pv = 100;
+    g->ennemi->pv = 100;
+    g->joueur->mana = 0;
+    g->joueur->manaMax = 0;
+    g->ennemi->mana = 0;
+    g->ennemi->manaMax = 0;
 
-    LCarte jeuJoueur = NULL;
-    LCarte jeuEnnemi = NULL;
+    g->joueur->deck = deckChoisi;
+    g->ennemi->deck = NULL;
 
-    LCarte boardJoueur = NULL;
-    LCarte boardEnnemi = NULL;
-
-    LCarte provocationJoueur = NULL;
-    LCarte provocationEnnemi = NULL;
-
-    Carte *terrainJoueur = NULL;
-    Carte *terrainEnnemi = NULL;
+    g->joueur->jeu = NULL;
+    g->ennemi->jeu = NULL;
+    g->joueur->board = NULL;
+    g->ennemi->board = NULL;
+    g->joueur->provocation = NULL;
+    g->ennemi->provocation = NULL;
+    g->joueur->terrain = NULL;
+    g->ennemi->terrain = NULL;
 
     int isSwollen = 0;
-    int idboard = 1;
+    (*(g->idboard)) = 1;
     int isYourTurn = 0;
 
     SDL_Rect RCarteCentre;
@@ -241,14 +252,14 @@ int jeu(int sock, LCarte deckChoisi)
     SDL_Texture *TManaJoueur = NULL;
     SDL_Texture *TManaEnnemi = NULL;
 
-    refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
-    refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
+    refreshMana(&TManaJoueur, g->joueur->mana, g->joueur->manaMax);
+    refreshMana(&TManaEnnemi, g->ennemi->mana, g->ennemi->manaMax);
     //Pv des joueurs
     SDL_Texture *TPvJoueur = NULL;
     SDL_Texture *TPvEnnemi = NULL;
 
-    refreshPv(&TPvJoueur, pvJoueur);
-    refreshPv(&TPvEnnemi, pvEnnemi);
+    refreshPv(&TPvJoueur, g->joueur->pv);
+    refreshPv(&TPvEnnemi, g->ennemi->pv);
 
     //Dos des cartes
     SDL_Texture *TDos;
@@ -271,6 +282,7 @@ int jeu(int sock, LCarte deckChoisi)
     //Zone d'affichage du jeu
     SDL_Texture *zoneJeu = createBouton(RZoneJeu.w, RZoneJeu.h, coulFondDeck, coulFondDeck, " ");
     SDL_Texture *separationBoards = createBouton(RSeparationBoards.w, RSeparationBoards.h, coulFondEcran, coulFondEcran, " ");
+    SDL_Texture *fondTerrain = createBouton(RTerrainJoueur.w, RTerrainJoueur.h, coulFondEcran, coulFondEcran, " ");
 
     //Victoire et Défaite
     SDL_Texture *TDefaite = creerTextureTexte("DEFAITE", coulTextBout, NULL, NULL);
@@ -283,6 +295,7 @@ int jeu(int sock, LCarte deckChoisi)
     SDL_Event event;
 
     Carte *cartetmp = NULL;
+    Carte *cartetmp2 = NULL;
     Carte *carteAttaquante = NULL;
     Carte *carteGonfle = NULL;
     Carte *terraintmp = NULL;
@@ -302,14 +315,15 @@ int jeu(int sock, LCarte deckChoisi)
     int instruction;
 
     int swollenBouton = 0;
+    int isFirstTurn = 1;
 
     //Pour les Terrains
-    int effetAttTerrainJoueur = 0;
-    int effetPVTerrainJoueur = 0;
-    int effetAttTerrainEnnemi = 0;
-    int effetPVTerrainEnnemi = 0;
-    int effetCoutTerrainJoueur = 0;
-    int effetCoutTerrainEnnemi = 0;
+    g->joueur->effetAttTerrain = 0;
+    g->joueur->effetPvTerrain = 0;
+    g->ennemi->effetAttTerrain = 0;
+    g->ennemi->effetPvTerrain = 0;
+    g->joueur->effetCoutTerrain = 0;
+    g->ennemi->effetCoutTerrain = 0;
 
     printf("Initialisation achevé\n");
 
@@ -323,10 +337,15 @@ int jeu(int sock, LCarte deckChoisi)
             //Pour quitter
             case SDL_QUIT:
                 send(sock, "/X", strlen("/X"), 0);
-                libereListeCarte(boardEnnemi);
-                libereListeCarte(boardJoueur);
-                libereListeCarte(jeuJoueur);
-                libereListeCarte(jeuEnnemi);
+                libereListeCarte(g->ennemi->board);
+                libereListeCarte(g->joueur->board);
+                libereListeCarte(g->joueur->jeu);
+                libereListeCarte(g->ennemi->jeu);
+                free(g->joueur);
+                free(g->ennemi);
+                free(g->idboard);
+                free(g);
+                free(reversedg);
                 libereTextureJeu(boutonPasserSonTour,
                                  TManaJoueur,
                                  TManaEnnemi,
@@ -337,7 +356,8 @@ int jeu(int sock, LCarte deckChoisi)
                                  zoneJeu,
                                  separationBoards,
                                  TDefaite,
-                                 TVictoire);
+                                 TVictoire,
+                                 fondTerrain);
                 return 1;
                 break;
 
@@ -351,12 +371,12 @@ int jeu(int sock, LCarte deckChoisi)
                 {
                     isYourTurn = 0;
                     send(sock, "2", strlen("2"), 0);
-                    if (manaMaxEnnemi < 10)
+                    if (g->ennemi->manaMax < 10)
                     {
-                        manaMaxEnnemi += 1;
+                        g->ennemi->manaMax += 1;
                     }
-                    manaEnnemi = manaMaxEnnemi;
-                    boardEnnemi = refreshAttaque(boardEnnemi);
+                    g->ennemi->mana = g->ennemi->manaMax;
+                    g->ennemi->board = refreshAttaque(g->ennemi->board);
                 }
 
                 //Mettre en évidence une carte
@@ -368,14 +388,14 @@ int jeu(int sock, LCarte deckChoisi)
                 {
                     if (event.button.button == SDL_BUTTON_RIGHT)
                     {
-                        carteGonfle = carteClique(&mousePos, jeuJoueur, boardEnnemi, boardJoueur);
-                        if (SDL_PointInRect(&mousePos, &RTerrainEnnemi) && terrainEnnemi != NULL)
+                        carteGonfle = carteClique(&mousePos, g->joueur->jeu, g->ennemi->board, g->joueur->board);
+                        if (SDL_PointInRect(&mousePos, &RTerrainEnnemi) && g->ennemi->terrain != NULL)
                         {
-                            carteGonfle = terrainEnnemi;
+                            carteGonfle = g->ennemi->terrain;
                         }
-                        if (SDL_PointInRect(&mousePos, &RTerrainJoueur) && terrainJoueur != NULL)
+                        if (SDL_PointInRect(&mousePos, &RTerrainJoueur) && g->joueur->terrain != NULL)
                         {
-                            carteGonfle = terrainJoueur;
+                            carteGonfle = g->joueur->terrain;
                         }
                         if (carteGonfle != NULL)
                         {
@@ -387,24 +407,53 @@ int jeu(int sock, LCarte deckChoisi)
                 //ATTAQUE
                 if (isYourTurn && carteAttaquante != NULL && event.button.button == SDL_BUTTON_LEFT)
                 {
-                    if (SDL_PointInRect(&mousePos, &RPvEnnemi) && (provocationEnnemi == NULL))
+                    if (SDL_PointInRect(&mousePos, &RPvEnnemi) && (carteAttaquante->id != 30) && (g->ennemi->provocation == NULL))
                     {
                         printf("%s attaque face ! \n", carteAttaquante->nom);
-                        pvEnnemi -= carteAttaquante->att + effetAttTerrainJoueur;
+                        g->ennemi->pv -= carteAttaquante->att + g->joueur->effetAttTerrain;
                         carteAttaquante->peutAttaquer = SDL_FALSE;
-                        sprintf(buffer, "/5 %d %d", pvEnnemi , carteAttaquante->idboard);
+                        sprintf(buffer, "/5 %d %d", g->ennemi->pv, carteAttaquante->idboard);
                         carteAttaquante = NULL;
                         send(sock, buffer, strlen(buffer), 0);
                     }
                     else
                     {
-                        cartetmp = carteClique(&mousePos, NULL, boardEnnemi, NULL);
-                        if (cartetmp != NULL && cartetmp->id != 17 &&((provocationEnnemi == NULL) || (isIn(cartetmp, provocationEnnemi))))
+                        cartetmp = carteClique(&mousePos, NULL, g->ennemi->board, NULL);
+                        if (cartetmp != NULL && cartetmp->id != 17 && ((g->ennemi->provocation == NULL) || (isIn(cartetmp, g->ennemi->provocation))))
                         {
                             printf("%s se fait attaquer par %s\n", cartetmp->nom, carteAttaquante->nom);
-                            cartetmp->pv -= carteAttaquante->att + effetAttTerrainJoueur;
-                            carteAttaquante->pv -= cartetmp->att + effetAttTerrainEnnemi;
+                            cartetmp->pv -= carteAttaquante->att + g->joueur->effetAttTerrain;
+                            carteAttaquante->pv -= cartetmp->att + g->ennemi->effetAttTerrain;
                             carteAttaquante->peutAttaquer = SDL_FALSE;
+                            if (carteAttaquante->id == 30)
+                            {
+                                carteAttaquante->pv = -10;
+                            }
+                            if (carteAttaquante->pv <= 0 && carteAttaquante->id == 27)
+                            {
+                                cartetmp->pv = -10;
+                            }
+                            else if (cartetmp->pv <= 0 && cartetmp->id == 27)
+                            {
+                                carteAttaquante->pv = -10;
+                            }
+                            if (carteAttaquante->pv <= 0 && carteAttaquante->id == 33 && cartetmp -> pv > 0 )
+                            {
+                                g->ennemi->board = retirerCarte(g->ennemi->board,cartetmp);
+                                cartetmp2 = creerLaFougere();
+                                cartetmp2->idboard = *(g->idboard);
+                                (*(g->idboard))++;
+                                g->ennemi->board = ajoutTete(g->ennemi->board,cartetmp2);
+                            }
+                            else if (cartetmp->pv <= 0 && cartetmp->id == 33 && carteAttaquante -> pv > 0 )
+                            {
+                                g->joueur->board = retirerCarte(g->joueur->board,carteAttaquante);
+                                cartetmp2 = creerLaFougere();
+                                cartetmp2->idboard = *(g->idboard);
+                                (*(g->idboard))++;
+                                g->joueur->board = ajoutTete(g->joueur->board,cartetmp2);
+                            }
+                            
                             sprintf(buffer, "/4 %d %d", carteAttaquante->idboard, cartetmp->idboard);
                             send(sock, buffer, strlen(buffer), 0);
                             carteAttaquante = NULL;
@@ -424,7 +473,7 @@ int jeu(int sock, LCarte deckChoisi)
                 //Faire attaquer un monstre
                 if (isYourTurn && event.button.button == SDL_BUTTON_LEFT)
                 {
-                    cartetmp = carteClique(&mousePos, NULL, NULL, boardJoueur);
+                    cartetmp = carteClique(&mousePos, NULL, NULL, g->joueur->board);
                     if (cartetmp != NULL && cartetmp->peutAttaquer)
                     {
                         carteAttaquante = cartetmp;
@@ -436,27 +485,27 @@ int jeu(int sock, LCarte deckChoisi)
                 {
                     if (SDL_PointInRect(&mousePos, &RTerrainEnnemi))
                     {
-                        if (terrainEnnemi != NULL)
+                        if (g->ennemi->terrain != NULL)
                         {
-                            libereCarte(terrainEnnemi);
+                            libereCarte(g->ennemi->terrain);
                         }
-                        terrainEnnemi = terraintmp;
-                        manaJoueur -= terraintmp->cout + effetCoutTerrainJoueur;
-                        jeuJoueur = retirerCarte(jeuJoueur, terraintmp);
-                        sprintf(buffer, "/6 %d %d", terrainEnnemi->id, 0);
+                        g->ennemi->terrain = terraintmp;
+                        g->joueur->mana -= terraintmp->cout + g->joueur->effetCoutTerrain;
+                        g->joueur->jeu = retirerCarte(g->joueur->jeu, terraintmp);
+                        sprintf(buffer, "/6 %d %d", g->ennemi->terrain->id, 0);
                         send(sock, buffer, strlen(buffer), 0);
                         terraintmp = NULL;
                     }
                     if (SDL_PointInRect(&mousePos, &RTerrainJoueur))
                     {
-                        if (terrainJoueur != NULL)
+                        if (g->joueur->terrain != NULL)
                         {
-                            libereCarte(terrainJoueur);
+                            libereCarte(g->joueur->terrain);
                         }
-                        terrainJoueur = terraintmp;
-                        manaJoueur -= terraintmp->cout + effetCoutTerrainJoueur;
-                        jeuJoueur = retirerCarte(jeuJoueur, terraintmp);
-                        sprintf(buffer, "/6 %d %d", terrainJoueur->id, 1);
+                        g->joueur->terrain = terraintmp;
+                        g->joueur->mana -= terraintmp->cout + g->joueur->effetCoutTerrain;
+                        g->joueur->jeu = retirerCarte(g->joueur->jeu, terraintmp);
+                        sprintf(buffer, "/6 %d %d", g->joueur->terrain->id, 1);
                         send(sock, buffer, strlen(buffer), 0);
                         terraintmp = NULL;
                     }
@@ -464,15 +513,12 @@ int jeu(int sock, LCarte deckChoisi)
                 //Choisir la cible d'un sort
                 if (isYourTurn && sorttmp != NULL && event.button.button == SDL_BUTTON_LEFT)
                 {
-                    cartetmp = carteClique(&mousePos, boardJoueur, boardEnnemi, NULL);
+                    cartetmp = carteClique(&mousePos, g->joueur->board, g->ennemi->board, NULL);
                     if (cartetmp != NULL && cartetmp->id != 17)
                     {
-                        if (sorttmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur,&idboard) != 1)
-                        {
-                            printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
-                        }
-                        manaJoueur -= sorttmp->cout + effetCoutTerrainJoueur;
-                        jeuJoueur = retirerCarte(jeuJoueur, sorttmp);
+                        sorttmp->effetDirect(cartetmp, g);
+                        g->joueur->mana -= sorttmp->cout + g->joueur->effetCoutTerrain;
+                        g->joueur->jeu = retirerCarte(g->joueur->jeu, sorttmp);
                         sprintf(buffer, "/8 %d %d", sorttmp->id, cartetmp->idboard);
                         send(sock, buffer, strlen(buffer), 0);
                         sorttmp = NULL;
@@ -490,31 +536,28 @@ int jeu(int sock, LCarte deckChoisi)
                 //Jouer un monstre, un terrain ou un sort
                 if (isYourTurn && event.button.button == SDL_BUTTON_LEFT && event.button.clicks == 2)
                 {
-                    cartetmp = carteClique(&mousePos, jeuJoueur, NULL, NULL);
-                    if (cartetmp != NULL && cartetmp->genre == 1 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    cartetmp = carteClique(&mousePos, g->joueur->jeu, NULL, NULL);
+                    if (cartetmp != NULL && cartetmp->genre == 1 && cartetmp->cout + g->joueur->effetCoutTerrain <= g->joueur->mana)
                     {
-                        if (estInvocable(cartetmp, boardJoueur))
+                        if (estInvocable(cartetmp, g->joueur->board))
                         {
-                            boardJoueur = ajoutTete(boardJoueur, cartetmp);
-                            if (cartetmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur,&idboard) != 1)
-                            {
-                                printf("ERREUR LORS DE L'INVOCATION DE %s\n", cartetmp->nom);
-                            }
-                            manaJoueur -= cartetmp->cout + effetCoutTerrainJoueur;
-                            printf("L'idboard de la carte que je viens de jouer est %d \n",idboard);
-                            cartetmp->idboard = idboard++;
+                            g->joueur->board = ajoutTete(g->joueur->board, cartetmp);
+                            cartetmp->effetDirect(cartetmp, g);
+                            g->joueur->mana -= cartetmp->cout + g->joueur->effetCoutTerrain;
+                            printf("L'idboard de la carte que je viens de jouer est %d \n", (*(g->idboard)));
+                            cartetmp->idboard = (*(g->idboard))++;
                             sprintf(buffer, "/3 %d 0", cartetmp->id);
                             send(sock, buffer, strlen(buffer), 0);
-                            jeuJoueur = retirerCarte(jeuJoueur, cartetmp);
+                            g->joueur->jeu = retirerCarte(g->joueur->jeu, cartetmp);
                             cartetmp = NULL;
                         }
                     }
-                    else if (cartetmp != NULL && cartetmp->genre == 3 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    else if (cartetmp != NULL && cartetmp->genre == 3 && cartetmp->cout + g->joueur->effetCoutTerrain <= g->joueur->mana)
                     {
                         terraintmp = cartetmp;
                         cartetmp = NULL;
                     }
-                    else if (cartetmp != NULL && cartetmp->genre == 2 && cartetmp->cout + effetCoutTerrainJoueur <= manaJoueur)
+                    else if (cartetmp != NULL && cartetmp->genre == 2 && cartetmp->cout + g->joueur->effetCoutTerrain <= g->joueur->mana)
                     {
                         if (cartetmp->peutAttaquer)
                         {
@@ -523,12 +566,9 @@ int jeu(int sock, LCarte deckChoisi)
                         }
                         else
                         {
-                            if (cartetmp->effetDirect(cartetmp, &provocationJoueur, &boardJoueur, &boardEnnemi, NULL, NULL, NULL, &jeuJoueur, &idboard) != 1)
-                            {
-                                printf("ERREUR LORS DU SORT %s\n", cartetmp->nom);
-                            }
-                            manaJoueur -= cartetmp->cout + effetCoutTerrainJoueur;
-                            jeuJoueur = retirerCarte(jeuJoueur, cartetmp);
+                            cartetmp->effetDirect(cartetmp, g);
+                            g->joueur->mana -= cartetmp->cout + g->joueur->effetCoutTerrain;
+                            g->joueur->jeu = retirerCarte(g->joueur->jeu, cartetmp);
                             sprintf(buffer, "/7 %d", cartetmp->id);
                             send(sock, buffer, strlen(buffer), 0);
                             cartetmp = NULL;
@@ -536,18 +576,17 @@ int jeu(int sock, LCarte deckChoisi)
                     }
                 }
 
-                boardJoueur = refreshBoard(boardJoueur, &provocationJoueur, terrainJoueur, &effetPVTerrainJoueur, &effetAttTerrainJoueur, &effetCoutTerrainJoueur,&idboard);
-                boardEnnemi = refreshBoard(boardEnnemi, &provocationEnnemi, terrainEnnemi, &effetPVTerrainEnnemi, &effetAttTerrainEnnemi, &effetCoutTerrainEnnemi,&idboard);
-
-                refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
-                refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
-                refreshPv(&TPvJoueur, pvJoueur);
-                refreshPv(&TPvEnnemi, pvEnnemi);
-                refreshTextureCompleteCarte(terrainJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                refreshTextureCompleteCarte(terrainEnnemi, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                refreshTexturesCompletesCartes(boardJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                refreshTexturesCompletesCartes(jeuJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                refreshTexturesCompletesCartes(boardEnnemi, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrainEnnemi);
+                refreshBoard(g);
+                refreshBoard(reversedg);
+                refreshMana(&TManaJoueur, g->joueur->mana, g->joueur->manaMax);
+                refreshMana(&TManaEnnemi, g->ennemi->mana, g->ennemi->manaMax);
+                refreshPv(&TPvJoueur, g->joueur->pv);
+                refreshPv(&TPvEnnemi, g->ennemi->pv);
+                refreshTextureCompleteCarte(g->joueur->terrain, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                refreshTextureCompleteCarte(g->ennemi->terrain, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                refreshTexturesCompletesCartes(g->joueur->board, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                refreshTexturesCompletesCartes(g->joueur->jeu, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                refreshTexturesCompletesCartes(g->ennemi->board, g->ennemi->effetPvTerrain, g->ennemi->effetAttTerrain, g->ennemi->effetCoutTerrain);
 
                 break;
 
@@ -614,8 +653,10 @@ int jeu(int sock, LCarte deckChoisi)
         //Fond zone de Jeu
         SDL_RenderCopy(ren, zoneJeu, NULL, &RZoneJeu);
         SDL_RenderCopy(ren, separationBoards, NULL, &RSeparationBoards);
+        SDL_RenderCopy(ren, fondTerrain, NULL, &RTerrainJoueur);
+        SDL_RenderCopy(ren, fondTerrain, NULL, &RTerrainEnnemi);
 
-        if (pvEnnemi <= 0 && victory == 0)
+        if (g->ennemi->pv <= 0 && victory == 0)
         {
             isYourTurn = 0;
             victory = 2;
@@ -626,11 +667,11 @@ int jeu(int sock, LCarte deckChoisi)
         {
             SDL_RenderCopy(ren, boutonPasserSonTour, NULL, &RBoutonPasserSonTour);
         }
-        afficheJeuJoueur(jeuJoueur);
-        afficheJeuEnnemi(TDos, jeuEnnemi);
+        afficheJeuJoueur(g->joueur->jeu);
+        afficheJeuEnnemi(TDos, g->ennemi->jeu);
 
-        afficheBoardJoueur(boardJoueur);
-        afficheBoardEnnemi(boardEnnemi);
+        afficheBoardJoueur(g->joueur->board);
+        afficheBoardEnnemi(g->ennemi->board);
 
         SDL_RenderCopy(ren, TManaJoueur, NULL, &RManaJoueur);
         SDL_RenderCopy(ren, TManaEnnemi, NULL, &RManaEnnemi);
@@ -641,14 +682,14 @@ int jeu(int sock, LCarte deckChoisi)
         SDL_RenderCopy(ren, TPvJoueur, NULL, &RPvJoueur);
         SDL_RenderCopy(ren, TPvEnnemi, NULL, &RPvEnnemi);
 
-        if (terrainJoueur != NULL)
+        if (g->joueur->terrain != NULL)
         {
-            SDL_RenderCopy(ren, terrainJoueur->TCarteComplete, NULL, &RTerrainJoueur);
+            SDL_RenderCopy(ren, g->joueur->terrain->TCarteComplete, NULL, &RTerrainJoueur);
         }
 
-        if (terrainEnnemi != NULL)
+        if (g->ennemi->terrain != NULL)
         {
-            SDL_RenderCopy(ren, terrainEnnemi->TCarteComplete, NULL, &RTerrainEnnemi);
+            SDL_RenderCopy(ren, g->ennemi->terrain->TCarteComplete, NULL, &RTerrainEnnemi);
         }
 
         if (isSwollen)
@@ -691,13 +732,18 @@ int jeu(int sock, LCarte deckChoisi)
                     buffer[i] = '\0';
                     j = i;
                     bufftmp = buffer + j + 1;
-                    if (!strcmp(bufftmp, "X"))
+                    if (bufftmp[0] == 'X')
                     {
                         printf("DECONNEXION DU JOUEUR ADVERSE\n");
-                        libereListeCarte(boardEnnemi);
-                        libereListeCarte(boardJoueur);
-                        libereListeCarte(jeuJoueur);
-                        libereListeCarte(jeuEnnemi);
+                        libereListeCarte(g->ennemi->board);
+                        libereListeCarte(g->joueur->board);
+                        libereListeCarte(g->joueur->jeu);
+                        libereListeCarte(g->ennemi->jeu);
+                        free(g->joueur);
+                        free(g->ennemi);
+                        free(g->idboard);
+                        free(g);
+                        free(reversedg);
                         libereTextureJeu(boutonPasserSonTour,
                                          TManaJoueur,
                                          TManaEnnemi,
@@ -708,84 +754,145 @@ int jeu(int sock, LCarte deckChoisi)
                                          zoneJeu,
                                          separationBoards,
                                          TDefaite,
-                                         TVictoire);
+                                         TVictoire,
+                                         fondTerrain);
                         return 0;
                     }
-                    if (!strcmp(bufftmp, "p"))
+                    if (bufftmp[0] == 'p')
                     {
-                        incrementeJeu(&jeuEnnemi);
+                        pioche(&(g->ennemi->jeu), &(g->ennemi->deck));
                     }
-                    if (!strcmp(bufftmp, "1"))
+                    if (bufftmp[0] == 's')
                     {
+                        if (isFirstTurn)
+                        {
+                            sendMyDeck(sock, g);
+                            for (int index = 0; index < 4; index++)
+                            {
+                                if (!(pioche(&(g->joueur->jeu), &(g->joueur->deck))))
+                                {
+                                    send(sock, "/p", strlen("/p"), 0);
+                                }
+                            }
+                            isFirstTurn = 0;
+                        }
                         isYourTurn = 1;
-                        if (len(jeuJoueur) >= 8)
+                        if (len(g->joueur->jeu) >= 8)
                         {
                         }
                         else
-                        {                          
-                            if (!(pioche(&jeuJoueur, &deckJoueur)))
+                        {
+                            if (!(pioche(&(g->joueur->jeu), &(g->joueur->deck))))
                             {
                                 send(sock, "/p", strlen("/p"), 0);
                             }
-                            checkStartTurn(&boardJoueur,jeuJoueur,&boardEnnemi,jeuEnnemi, &idboard,sock);
+                            checkStartTurn(&(g->joueur->board), g->joueur->jeu, &(g->ennemi->board), g->ennemi->jeu, g->idboard, sock);
                         }
-                        if (manaMaxJoueur < 10)
+                        if (g->joueur->manaMax < 10)
                         {
-                            manaMaxJoueur++;
+                            g->joueur->manaMax++;
                         }
-                        boardJoueur = refreshAttaque(boardJoueur);
-                        manaJoueur = manaMaxJoueur;
+                        g->joueur->board = refreshAttaque(g->joueur->board);
+                        g->joueur->mana = g->joueur->manaMax;
                     }
 
-                    if (!strcmp(bufftmp, "2"))
+                    if (bufftmp[0] == '2')
                     {
-                        manaMaxEnnemi++;
-                        manaEnnemi = manaMaxEnnemi;
+                        if (isFirstTurn)
+                        {
+                            sendMyDeck(sock, g);
+                            for (int index = 0; index < 4; index++)
+                            {
+                                if (!(pioche(&(g->joueur->jeu), &(g->joueur->deck))))
+                                {
+                                    send(sock, "/p", strlen("/p"), 0);
+                                }
+                            }
+                            g->joueur->jeu = ajoutTete(g->joueur->jeu, creerMadaMana());
+                            send(sock, "/p", strlen("/p"), 0);
+                            isFirstTurn = 0;
+                        }
+                        g->ennemi->manaMax++;
+                        g->ennemi->mana = g->ennemi->manaMax;
                     }
 
                     if (bufftmp[0] == '3')
                     {
-                        sscanf(bufftmp, "%d %d %d", &instruction, &idtmp,&idtmp2);
+                        sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
                         cartetmp = idtocard(idtmp);
-                        printf("L'idboard de la carte qui vient d'être joué par l'adversaire est %d \n",idboard);
-                        printf("Idtmp : %d et Idtmp2 : %d \n",idtmp,idtmp2);
-                        cartetmp->idboard = idboard++;
-                        if (idtmp2) {
-                            boardJoueur = ajoutTete(boardJoueur,cartetmp);
+                        printf("L'idboard de la carte qui vient d'être joué par l'adversaire est %d \n", (*(g->idboard)));
+                        printf("Idtmp : %d et Idtmp2 : %d \n", idtmp, idtmp2);
+                        cartetmp->idboard = (*(g->idboard))++;
+                        if (idtmp2 == 1)
+                        {
+                            g->joueur->board = ajoutTete(g->joueur->board, cartetmp);
                         }
-                        else {
-                            boardEnnemi = ajoutTete(boardEnnemi, cartetmp);
-                            if (cartetmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi,&idboard) != 1)
-                            {
-                                printf("ERREUR LORS DE L'INVOCATION DE %s\n", cartetmp->nom);
+                        else
+                        {
+                            if (idtmp2 == 2) {
+                                g->ennemi->board = ajoutTete(g->ennemi->board, cartetmp);
                             }
-                            manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
-                            decrementeJeu(&jeuEnnemi);
+                            else {
+                            g->ennemi->board = ajoutTete(g->ennemi->board, cartetmp);
+                            cartetmp->effetDirect(cartetmp, reversedg);
+                            g->ennemi->mana -= cartetmp->cout + g->ennemi->effetCoutTerrain;
+                            decrementeJeu(&(g->ennemi->jeu));
+                            }
                         }
                     }
                     if (bufftmp[0] == '4')
                     {
                         sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
-                        carteAttaquante = inBoard(idtmp, boardEnnemi);
-                        cartetmp = inBoard(idtmp2, boardJoueur);
+                        carteAttaquante = inBoard(idtmp, g->ennemi->board);
+                        cartetmp = inBoard(idtmp2, g->joueur->board);
                         if (cartetmp == NULL || carteAttaquante == NULL)
                         {
                             printf("ERREUR ATTAQUE ENNEMI %p %p \n", cartetmp, carteAttaquante);
                             return 1;
                         }
                         carteAttaquante->peutAttaquer = SDL_FALSE;
-                        cartetmp->pv -= carteAttaquante->att + effetAttTerrainEnnemi;
-                        carteAttaquante->pv -= cartetmp->att + effetAttTerrainJoueur;
+                        cartetmp->pv -= carteAttaquante->att + g->ennemi->effetAttTerrain;
+                        carteAttaquante->pv -= cartetmp->att + g->joueur->effetAttTerrain;
+                        if (carteAttaquante->id == 30)
+                        {
+                            carteAttaquante->pv = -10;
+                        }
+                        if (carteAttaquante->pv <= 0 && carteAttaquante->id == 27)
+                        {
+                            cartetmp->pv = -10;
+                        }
+                        else if (cartetmp->pv <= 0 && cartetmp->id == 27)
+                        {
+                            carteAttaquante->pv = -10;
+                        }
+                        if (carteAttaquante->pv <= 0 && carteAttaquante->id == 33 && cartetmp -> pv > 0 )
+                            {
+                                g->joueur->board = retirerCarte(g->joueur->board,cartetmp);
+                                cartetmp2 = creerLaFougere();
+                                cartetmp2->idboard = *(g->idboard);
+                                (*(g->idboard))++;
+                                g->joueur->board = ajoutTete(g->joueur->board,cartetmp2);
+                            }
+                            else if (cartetmp->pv <= 0 && cartetmp->id == 33 && carteAttaquante -> pv > 0 )
+                            {
+                                g->ennemi->board = retirerCarte(g->ennemi->board,carteAttaquante);
+                                libereCarte(carteAttaquante);
+                                cartetmp2= creerLaFougere();
+                                cartetmp2->idboard = *(g->idboard);
+                                (*(g->idboard))++;
+                                g->ennemi->board = ajoutTete(g->ennemi->board,cartetmp2);
+                            }
                         carteAttaquante = NULL;
                     }
                     if (bufftmp[0] == '5')
                     {
                         sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
-                        cartetmp = inBoard(idtmp2, boardEnnemi);
-                        if (cartetmp) {
+                        cartetmp = inBoard(idtmp2, g->ennemi->board);
+                        if (cartetmp)
+                        {
                             cartetmp->peutAttaquer = SDL_FALSE;
                         }
-                        pvJoueur = idtmp;
+                        g->joueur->pv = idtmp;
                     }
                     if (bufftmp[0] == '6')
                     {
@@ -793,50 +900,44 @@ int jeu(int sock, LCarte deckChoisi)
                         cartetmp = idtocard(idtmp);
                         if (idtmp2)
                         {
-                            if (terrainEnnemi != NULL)
+                            if (g->ennemi->terrain != NULL)
                             {
-                                libereCarte(terrainEnnemi);
+                                libereCarte(g->ennemi->terrain);
                             }
-                            terrainEnnemi = cartetmp;
+                            g->ennemi->terrain = cartetmp;
                         }
                         else
                         {
-                            if (terrainJoueur != NULL)
+                            if (g->joueur->terrain != NULL)
                             {
-                                libereCarte(terrainJoueur);
+                                libereCarte(g->joueur->terrain);
                             }
-                            terrainJoueur = cartetmp;
+                            g->joueur->terrain = cartetmp;
                         }
-                        decrementeJeu(&jeuEnnemi);
-                        manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
+                        decrementeJeu(&(g->ennemi->jeu));
+                        g->ennemi->mana -= cartetmp->cout + g->ennemi->effetCoutTerrain;
                     }
                     if (bufftmp[0] == '7')
                     {
                         sscanf(bufftmp, "%d %d", &instruction, &idtmp);
                         cartetmp = idtocard(idtmp);
-                        if (cartetmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi,&idboard) != 1)
-                        {
-                            printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
-                        }
-                        decrementeJeu(&jeuEnnemi);
-                        manaEnnemi -= cartetmp->cout + effetCoutTerrainEnnemi;
+                        cartetmp->effetDirect(cartetmp, reversedg);
+                        decrementeJeu(&(g->ennemi->jeu));
+                        g->ennemi->mana -= cartetmp->cout + g->ennemi->effetCoutTerrain;
                     }
 
                     if (bufftmp[0] == '8')
                     {
                         sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
                         sorttmp = idtocard(idtmp);
-                        cartetmp = inBoard(idtmp2, boardJoueur);
+                        cartetmp = inBoard(idtmp2, g->joueur->board);
                         if (cartetmp == NULL)
                         {
-                            cartetmp = inBoard(idtmp2, boardEnnemi);
+                            cartetmp = inBoard(idtmp2, g->ennemi->board);
                         }
-                        if (sorttmp->effetDirect(cartetmp, &provocationEnnemi, &boardEnnemi, &boardJoueur, NULL, NULL, NULL, &jeuEnnemi,&idboard) != 1)
-                        {
-                            printf("ERREUR LORS DU SORT DE %s\n", cartetmp->nom);
-                        }
-                        decrementeJeu(&jeuEnnemi);
-                        manaEnnemi -= sorttmp->cout + effetCoutTerrainEnnemi;
+                        sorttmp->effetDirect(cartetmp, reversedg);
+                        decrementeJeu(&(g->ennemi->jeu));
+                        g->ennemi->mana -= sorttmp->cout + g->ennemi->effetCoutTerrain;
                         sorttmp = NULL;
                     }
 
@@ -845,25 +946,42 @@ int jeu(int sock, LCarte deckChoisi)
                         victory = 1;
                     }
 
-                    if ((strlen(bufftmp) > 1) && bufftmp[0] == '1' && bufftmp[1] == '0') {
-                        sscanf(bufftmp,"%d %d %d %d", &instruction, &idtmp, &idtmp2, &idtmp3);
-                        cartetmp = inBoard(idtmp,boardEnnemi);
-                        cartetmp -> pv = idtmp2;
-                        cartetmp -> att = idtmp3;
+                    if ((strlen(bufftmp) > 1) && bufftmp[0] == '1' && bufftmp[1] == '0')
+                    {
+                        sscanf(bufftmp, "%d %d %d %d", &instruction, &idtmp, &idtmp2, &idtmp3);
+                        cartetmp = inBoard(idtmp, g->ennemi->board);
+                        if (!cartetmp) {
+                        cartetmp = inBoard(idtmp, g->joueur->board);
+                        }
+                        cartetmp->pv = idtmp2;
+                        cartetmp->att = idtmp3;
+                        
                     }
 
-                    boardJoueur = refreshBoard(boardJoueur, &provocationJoueur, terrainJoueur, &effetPVTerrainJoueur, &effetAttTerrainJoueur, &effetCoutTerrainJoueur,&idboard);
-                    boardEnnemi = refreshBoard(boardEnnemi, &provocationEnnemi, terrainEnnemi, &effetPVTerrainEnnemi, &effetAttTerrainEnnemi, &effetCoutTerrainEnnemi,&idboard);
+                    if ((strlen(bufftmp) > 1) && bufftmp[0] == '1' && bufftmp[1] == '1')
+                    {
+                        sscanf(bufftmp, "%d %d", &instruction, &idtmp);
+                        printf("Je prends note que %d fait partie du deck ennemi\n", idtmp);
+                        g->ennemi->deck = ajoutTete(g->ennemi->deck, idtocard(idtmp));
+                    }
 
-                    refreshMana(&TManaJoueur, manaJoueur, manaMaxJoueur);
-                    refreshMana(&TManaEnnemi, manaEnnemi, manaMaxEnnemi);
-                    refreshPv(&TPvJoueur, pvJoueur);
-                    refreshPv(&TPvEnnemi, pvEnnemi);
-                    refreshTextureCompleteCarte(terrainJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                    refreshTextureCompleteCarte(terrainEnnemi, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                    refreshTexturesCompletesCartes(boardJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                    refreshTexturesCompletesCartes(jeuJoueur, effetPVTerrainJoueur, effetAttTerrainJoueur, effetCoutTerrainJoueur);
-                    refreshTexturesCompletesCartes(boardEnnemi, effetPVTerrainEnnemi, effetAttTerrainEnnemi, effetCoutTerrainEnnemi);
+                    if ((strlen(bufftmp) > 1) && bufftmp[0] == '1' && bufftmp[1] == '2')
+                    {
+                        sscanf(bufftmp, "%d %d", &instruction, &idtmp);
+                        g->ennemi->board = retirerCarte(g->ennemi->board, inBoard(idtmp,g->ennemi->board));
+                    }
+
+                    refreshBoard(g);
+                    refreshBoard(reversedg);
+                    refreshMana(&TManaJoueur, g->joueur->mana, g->joueur->manaMax);
+                    refreshMana(&TManaEnnemi, g->ennemi->mana, g->ennemi->manaMax);
+                    refreshPv(&TPvJoueur, g->joueur->pv);
+                    refreshPv(&TPvEnnemi, g->ennemi->pv);
+                    refreshTextureCompleteCarte(g->joueur->terrain, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                    refreshTextureCompleteCarte(g->ennemi->terrain, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                    refreshTexturesCompletesCartes(g->joueur->board, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                    refreshTexturesCompletesCartes(g->joueur->jeu, g->joueur->effetPvTerrain, g->joueur->effetAttTerrain, g->joueur->effetCoutTerrain);
+                    refreshTexturesCompletesCartes(g->ennemi->board, g->ennemi->effetPvTerrain, g->ennemi->effetAttTerrain, g->ennemi->effetCoutTerrain);
 
                     buffer[i] = '\0';
                     i++;

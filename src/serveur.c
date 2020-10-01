@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
       printf("Erreur recv\n");
     }
 
-    send(socketJ1,"/1",strlen("/1"),0);
+    send(socketJ1,"/s",strlen("/s"),0);
     send(socketJ2,"/2",strlen("/2"),0);
 
     int game=1;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
         }
         buffer[n] = '\0';
         if (!strcmp("2",buffer)) {
-            send(socketJ2,"/1",strlen("/1"),0);
+            send(socketJ2,"/s",strlen("/s"),0);
         }
         else {
             if (!strcmp("/X",buffer)) {
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
         buffer[n] = '\0';
 
         if (!strcmp("2",buffer)) {
-            send(socketJ1,"/1",strlen("/1"),0);
+            send(socketJ1,"/s",strlen("/s"),0);
         }
         else {
             if (!strcmp("/X",buffer)) {
