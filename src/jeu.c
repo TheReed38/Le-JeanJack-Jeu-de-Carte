@@ -542,10 +542,10 @@ int jeu(int sock, LCarte deckChoisi)
                         if (estInvocable(cartetmp, g->joueur->board))
                         {
                             g->joueur->board = ajoutTete(g->joueur->board, cartetmp);
+                            cartetmp->idboard = (*(g->idboard))++;
                             cartetmp->effetDirect(cartetmp, g);
                             g->joueur->mana -= cartetmp->cout + g->joueur->effetCoutTerrain;
                             printf("L'idboard de la carte que je viens de jouer est %d \n", (*(g->idboard)));
-                            cartetmp->idboard = (*(g->idboard))++;
                             sprintf(buffer, "/3 %d 0", cartetmp->id);
                             send(sock, buffer, strlen(buffer), 0);
                             g->joueur->jeu = retirerCarte(g->joueur->jeu, cartetmp);
@@ -843,6 +843,7 @@ int jeu(int sock, LCarte deckChoisi)
                     if (bufftmp[0] == '4')
                     {
                         sscanf(bufftmp, "%d %d %d", &instruction, &idtmp, &idtmp2);
+                        printf("L'idboard %d attaque l'idboard %d \n",idtmp,idtmp2);
                         carteAttaquante = inBoard(idtmp, g->ennemi->board);
                         cartetmp = inBoard(idtmp2, g->joueur->board);
                         if (cartetmp == NULL || carteAttaquante == NULL)

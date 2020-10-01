@@ -312,7 +312,7 @@ LCarte refreshAttaque(LCarte l)
   {
     if (a->carte->id == 39)
     {
-      if (a->carte->type == JUST_ATTACKED)
+      if (a->carte->peutAttaquer == SDL_FALSE && a->carte->type == JUST_ATTACKED)
       {
         a->carte->type = READY_TO_ATTACK;
       }
@@ -558,6 +558,7 @@ void effetDirectTheReed(Carte *c, GameStatus g)
       cartetmp = idtocard(39);
       cartetmp->idboard = *(g->idboard);
       (*(g->idboard))++;
+      printf("L'idboard du couple est %d \n",cartetmp->idboard);
       g->joueur->board = ajoutTete(g->joueur->board, cartetmp);
       break;
     }
@@ -584,6 +585,7 @@ void effetDirectNellise(Carte *c, GameStatus g)
       cartetmp = idtocard(39);
       cartetmp->idboard = *(g->idboard);
       (*(g->idboard))++;
+      printf("L'idboard du couple est %d \n",cartetmp->idboard);
       g->joueur->board = ajoutTete(g->joueur->board, cartetmp);
       break;
     }
@@ -1230,7 +1232,7 @@ Carte *creerCamera()
 
 Carte *creerLeCouple()
 {
-  Carte *tmp = creerCarte(39, "Le Couple", "image/cartes/leCouple.png", 1, READY_TO_ATTACK, 9, 9, 8, SDL_FALSE);
+  Carte *tmp = creerCarte(39, "Le Couple", "image/cartes/leCouple.png", 1,READY_TO_ATTACK, 9, 9, 8, SDL_FALSE);
   tmp->raleDagonie = &raleDagonieNeutre;
   tmp->effetDirect = &effetDirectNeutre;
   return tmp;
